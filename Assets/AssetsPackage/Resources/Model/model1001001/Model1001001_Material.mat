@@ -37,8 +37,11 @@ Material:
     - _moniTime: 0.01171875
     - _zhenying: 1
     m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Diffuse: {r: 1, g: 1, b: 1, a: 1}
     - _LightDir: {r: 0.15, g: 1, b: -0.15, a: 1}
+    - _ShadowCol: {r: 0, g: 0, b: 0, a: 0}
     - _Specular: {r: 0.7176471, g: 0.7019608, b: 0.5647059, a: 1}
+    - _UVOffset: {r: 1, g: 1, b: 0, a: 0}
     - _huanjingse: {r: 0.5490196, g: 0.4941177, b: 0.4941177, a: 1}
     - _lightCol: {r: 1, g: 1, b: 1, a: 1}

@@ -78,13 +78,17 @@ public class StartDemo : MonoBehaviour
         		instances.Add(colRoles);
         		for (int y = 0; y < height; y++) {
         			Debug.Log("create object " + x + ", " + y);
-			        GameObject role = (GameObject)Resources.Load("Model/model1001001/model1001001");
-			        role = Instantiate(role);
-			        role.transform.parent = _roleNode1.transform;
-			        role.transform.localPosition = new Vector3(x, 0, y);
-
-			        Role roleObj = new Role(role);
-			        colRoles.Add(roleObj);
+			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
+			        go = Instantiate(go);
+			        go.transform.parent = _roleNode1.transform;
+			        go.transform.localPosition = new Vector3(x, 0, y);
+		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
+		            soldier_model_custom_data.setPower(2);
+		            soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+		            soldier_model_custom_data.getAnimator().Play("idle", 0, 0);
+			        Role role = new Role(go);
+			        colRoles.Add(role);
         		}
         	}
         	break;
