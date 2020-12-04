@@ -10,12 +10,20 @@ public class StartDemoToolsInspector : Editor
     private bool isload = false;
     private bool isobjview = false;
     private bool istexview = false;
+    private bool resetGame = false;
 
 
     private ConfigTeamParams configTeamA;
     private ConfigTeamParams configTeamB;
 
     private void initConfig() {
+        EditorGUILayout.BeginHorizontal();
+        resetGame = EditorGUILayout.Toggle("游戏重置：", resetGame);
+        if (resetGame) {
+            _getStartDemo.resetGame();
+            resetGame = false;
+        }
+        EditorGUILayout.EndHorizontal();
         _initConfig(configTeamA, "A");
         _initConfig(configTeamB, "B");
     }
@@ -58,13 +66,12 @@ public class StartDemoToolsInspector : Editor
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        configTeam.teamRect = EditorGUILayout.Vector2Field("阵容范围(长宽)：", configTeam.teamRect);
+        configTeam.teamRect = EditorGUILayout.Vector2IntField("阵容范围(长宽)：", configTeam.teamRect);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
         configTeam.formation = (FORMATION)EditorGUILayout.EnumPopup("阵容：", configTeam.formation);
         EditorGUILayout.EndHorizontal();
-
     }
 
     public override void OnInspectorGUI()
@@ -86,6 +93,7 @@ public class StartDemoToolsInspector : Editor
         _getStartDemo.Init();
         configTeamA = _getStartDemo.getConfigTeamA();
         configTeamB = _getStartDemo.getConfigTeamB();
+
         this.isload = true;
     }
 
