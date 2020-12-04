@@ -51,11 +51,22 @@ public class StartDemoToolsInspector : Editor
         configTeam.move = (ROLE_STATE)EditorGUILayout.EnumPopup("动作：", configTeam.move);
         // if (GUILayout.Button("Create"))
         //     InstantiatePrimitive(configTeam.move);
+
+        switch (configTeam.move) {
+            case ROLE_STATE.IDLE:
+            break;
+            case ROLE_STATE.WALK:
+                _getStartDemo.Move();
+            break;
+            default:
+            break;
+        }
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
         configTeam.startPos = EditorGUILayout.Vector3Field("起点：", configTeam.startPos);
         EditorGUILayout.EndHorizontal();
+
 
         EditorGUILayout.BeginHorizontal();
         configTeam.endPos = EditorGUILayout.Vector3Field("终点：", configTeam.endPos);

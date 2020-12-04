@@ -1,13 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public enum ROLE_STATE
 {
-    IDLE = 0,
-    ATTACK = 1,
-    DIE = 2,
-    JUMP_DIE = 3,
+    UNKNOWN = 0,
+    IDLE = 1,
+    ATTACK = 2,
+    WALK = 3,
+    DIE = 4,
+    JUMP_DIE = 5,
 }
 
 
@@ -44,12 +47,20 @@ public enum GAME_STATE {
 }
 public class Role {
 	private GameObject _obj;
-	public Role(GameObject obj){
+	private ROLE_STATE _state;
+	public int X{set;get;}
+	public int Y{set;get;}
+	public Role(GameObject obj, int _x, int _y){
 		_obj = obj;
-
+		X = _x;
+		Y = _y;
 	}
 
 	public GameObject getGo() { return _obj; }
+	public void move() {
+
+		_state = ROLE_STATE.WALK;
+	}
 }
 
 public class StartDemo : MonoBehaviour
@@ -68,6 +79,10 @@ public class StartDemo : MonoBehaviour
     {
         _gameState = GAME_STATE.READY;
 		_roleNode1 = GameObject.Find("Terrain/RoleNode1");
+		// EXAMPLE A: initialize with the preferences set in DOTween's Utility Panel
+		﻿﻿﻿﻿﻿DOTween.Init();
+		﻿﻿﻿﻿﻿// EXAMPLE B: initialize with custom settings, and set capacities immediately
+		﻿﻿﻿﻿﻿DOTween.Init(true, true, LogBehaviour.Verbose).SetCapacity(200, 10);
     }
 
     void init(List<List<Role>> instances, ConfigTeamParams _config){
@@ -75,6 +90,7 @@ public class StartDemo : MonoBehaviour
         	case FORMATION.RECT:
         	int width = _config.teamRect.x;
         	int height = _config.teamRect.y;
+        	Vector3 starPos = new Vector3(1.0f, 0.0f, 0.0f);
         	Vector3 tarPos = new Vector3(1.0f, 0.0f, 0.0f);
         	for (int x = 0; x < width; x++) {
         		List<Role> colRoles = new List<Role>();
@@ -92,7 +108,7 @@ public class StartDemo : MonoBehaviour
 		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
 		            soldier_model_custom_data.getAnimator().Play("idle", 0, 0);
 			        // soldier_model_custom_data.getAnimator().SetLookAtPosition(tarPos);
-			        Role role = new Role(go);
+			        Role role = new Role(go, x, y);
 			        colRoles.Add(role);
         		}
         	}
@@ -164,45 +180,28 @@ public class StartDemo : MonoBehaviour
     	return _configTeamB;
     }
 
-    private void loopGame() {
-        Vector3 tarPos = new Vector3(-1.0f, 0.0f, -1.0f);
-
-    	Vector3 TargetPosition = new Vector3(1000,0,1000);
-		float AvatarRange = 25;
-		Debug.Log("_instancesA=" + _instancesA);
-		Debug.Log("_instancesA size=" + _instancesA.Count);
+    public void Move() {
     	foreach (List<Role> colRoles in _instancesA) {
     		foreach (Role role in colRoles) {
     			GameObject go = role.getGo();
-    			Transform transform = go.transform;
-	      //       if (Vector3.SqrMagnitude(TargetPosition - transform.position) > 25)
-	      //       {
-
-	      //           //avatar.SetFloat("Speed", 1, SpeedDampTime, Time.deltaTime);
-
-	      //           Vector3 curentDir = transform.rotation * Vector3.forward;
-	                Vector3 wantedDir = (TargetPosition - transform.position).normalized;
-	                Debug.Log("wantedDir=" + wantedDir);
-	      //           transform.Translate(wantedDir * 1.0f * Time.deltaTime);
-	      //           transform.rotation.SetLookRotation(wantedDir);
-	                // go.transform.Rotate(0, 180, 0, Space.Self);
-	      //           go.transform.rotation = Quaternion.LookRotation(TargetPosition - transform.position);
-	      //           // transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(TargetPosition - transform.position), 8.0f);
-	      //       }
-	      //       else
-	      //       {
-
-	      //           //if (avatar.GetFloat("Speed") < 0.01f)
-	      //           {
-	      //               // instancing.PlayAnimation(UnityEngine.Random.Range(0, 2));
-	      //               //instancing.PlayAnimation(1);
-	      //               //instancing.CrossFade(1, 0.1f);
-	      //               TargetPosition = new Vector3(UnityEngine.Random.Range(-AvatarRange, AvatarRange), 0, UnityEngine.Random.Range(-AvatarRange, AvatarRange));
-	      //               transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(TargetPosition - transform.position), 0.1f);
-	      //               //gameObject.transform.rotation = Quaternion.LookRotation(TargetPosition - transform.position);
-	      //           }
-	      //       }
+			    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
+			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + new Vector3(200,0,100), 1);
     		}
     	}
+    }
+
+    private void loopGame() {
+  //       Vector3 tarPos = new Vector3(-1.0f, 0.0f, -1.0f);
+
+  //   	Vector3 TargetPosition = new Vector3(1000,0,1000);
+		// float AvatarRange = 25;
+		// Debug.Log("_instancesA=" + _instancesA);
+		// Debug.Log("_instancesA size=" + _instancesA.Count);
+  //   	foreach (List<Role> colRoles in _instancesA) {
+  //   		foreach (Role role in colRoles) {
+  //   			GameObject go = role.getGo();
+  //   			Transform transform = go.transform;
+  //   		}
+  //   	}
     }
 }
