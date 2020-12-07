@@ -69,11 +69,18 @@ public class Role {
 	}
 
 	public GameObject getGo() { return _obj; }
-	public void move() {
 
+	public void move() {
 		_state = ROLE_STATE.WALK;
 	}
 
+	public void dead() {
+		_state = ROLE_STATE.DIE;
+		Transform transform = _obj.transform;
+        ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
+        transform.DOKill();
+        customData.getAnimator().Play("Die", 0, 0);
+	}
 
 	public bool isCollision(Vector3 pos) {
 		Vector3 colliderPos = _obj.transform.position;
@@ -106,6 +113,8 @@ public class StartDemo : MonoBehaviour
 
     private List<List<Role>> _tmpInstances;
 
+    private List<Role> _deadInstances;
+
 
     private GameObject _roleNode1;
     private GameObject _roleNode2;
@@ -128,11 +137,12 @@ public class StartDemo : MonoBehaviour
 
 		//获取需要监听的按钮对象
 		GameObject button= GameObject.Find("Canvas/Button");
-		                //设置这个按钮的监听，指向本类的ButtonClick方法中。
+		//设置这个按钮的监听，指向本类的ButtonClick方法中。
 		EventTriggerListener.Get(button.gameObject).onClick= ButtonClick;
 
         _instancesA = new List<List<Role>>();
         _instancesB = new List<List<Role>>();
+        _deadInstances = new List<Role>();
 		// _colliders = new Dictionary<>();
     }
 
@@ -148,11 +158,11 @@ public class StartDemo : MonoBehaviour
 		// Debug.Log("mousePos=" + mousePos);
   //       go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
 
-  //       ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
-  //       soldier_model_custom_data.setPower(2);
-  //       soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-  //       soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-  //       soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
+  //       ModelCustomData customData = go.GetComponent<ModelCustomData>();
+  //       customData.setPower(2);
+  //       customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+  //       customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+  //       customData.getAnimator().Play("Idle", 0, 0);
 
         initTmpTeamB();
         _interactiveState = INTERACTIVE_STATE.SELECTING;
@@ -185,12 +195,12 @@ public class StartDemo : MonoBehaviour
 			        	role = new Role(go, x, y, 2);
 		        	}
 			        
-		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
-		            soldier_model_custom_data.setPower(config.power);
-		            soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-		            soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
-			        // soldier_model_custom_data.getAnimator().SetLookAtPosition(tarPos);
+		            ModelCustomData customData = go.GetComponent<ModelCustomData>();
+		            customData.setPower(config.power);
+		            customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+		            customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+		            customData.getAnimator().Play("Idle", 0, 0);
+			        // customData.getAnimator().SetLookAtPosition(tarPos);
 			        colRoles.Add(role);
         		}
         	}
@@ -236,7 +246,7 @@ public class StartDemo : MonoBehaviour
 
     	switch (_gameState) {
     		case GAME_STATE.DURATION:
-    			loopGame();
+    			fixedLoopGame();
     		break;
     	}
     }
@@ -348,6 +358,7 @@ public class StartDemo : MonoBehaviour
         }
         _instancesA.Clear();
         _instancesB.Clear();
+        _deadInstances.Clear();
     }
     public ConfigTeamParams getConfigTeamA() {
     	return _configTeamA;
@@ -364,19 +375,15 @@ public class StartDemo : MonoBehaviour
     			GameObject go = role.getGo();
 			    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
 			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + _configTeamA.endPos, 1000);
-		        ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
-		        soldier_model_custom_data.getAnimator().Play("Move", 0, 0);
+		        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+		        customData.getAnimator().Play("Move", 0, 0);
     		}
     	}
 
     }
 
 
-    private void loopGame() {
-  //       Vector3 tarPos = new Vector3(-1.0f, 0.0f, -1.0f);
-
-  //   	Vector3 TargetPosition = new Vector3(1000,0,1000);
-		// float AvatarRange = 25;
+    private void fixedLoopGame() {
 		Debug.Log("_instancesA=" + _instancesA + ", " + _instancesB);
 		Debug.Log("_instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
 
@@ -398,7 +405,9 @@ public class StartDemo : MonoBehaviour
 						if (role.isCollision(transform2.position)) {
 							Debug.Log("Collision=" + j + "," + k + ", A position=" + transform.position);
 							role2.health -= role.health;
-							Destroy(go);
+							// Destroy(go);
+							_deadInstances.Add(role);
+							role.dead();
 							roleList.RemoveAt(k);
 							if (role2.health <= 0) {
 								role2Dead = true;
@@ -410,13 +419,13 @@ public class StartDemo : MonoBehaviour
 				}
 
 				if (role2Dead) {
-					Destroy(go2);
+					// Destroy(go2);
+					_deadInstances.Add(role2);
+					role2.dead();
 					roleList2.RemoveAt(k2);
 				}
 			}
 		}
-
-    	// check collision.
 
     }
 }
