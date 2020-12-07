@@ -74,7 +74,7 @@ public class Role {
 		_state = ROLE_STATE.WALK;
 	}
 
-	public void dead() {
+	public void die() {
 		_state = ROLE_STATE.DIE;
 		Transform transform = _obj.transform;
         ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
@@ -407,7 +407,7 @@ public class StartDemo : MonoBehaviour
 							role2.health -= role.health;
 							// Destroy(go);
 							_deadInstances.Add(role);
-							role.dead();
+							role.die();
 							roleList.RemoveAt(k);
 							if (role2.health <= 0) {
 								role2Dead = true;
@@ -421,7 +421,7 @@ public class StartDemo : MonoBehaviour
 				if (role2Dead) {
 					// Destroy(go2);
 					_deadInstances.Add(role2);
-					role2.dead();
+					role2.die();
 					roleList2.RemoveAt(k2);
 				}
 			}
