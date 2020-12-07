@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.EventSystems;
+using UnityEngine.Events;
 
 public enum ROLE_STATE
 {
@@ -11,6 +13,7 @@ public enum ROLE_STATE
     WALK = 3,
     DIE = 4,
     JUMP_DIE = 5,
+    PLACING = 6,
 }
 
 
@@ -69,9 +72,12 @@ public class StartDemo : MonoBehaviour
     private ConfigTeamParams _configTeamA;
     private ConfigTeamParams _configTeamB;
     private List<List<Role>> _instancesA;
+    private List<List<Role>> _instancesB;
 
 
     private GameObject _roleNode1;
+    private GameObject _roleNode2;
+    private GameObject _placingGO;
 
 
     // Start is called before the first frame update
@@ -79,12 +85,33 @@ public class StartDemo : MonoBehaviour
     {
         _gameState = GAME_STATE.READY;
 		_roleNode1 = GameObject.Find("Terrain/RoleNode1");
+		_roleNode2 = GameObject.Find("Terrain/RoleNode2");
 		// EXAMPLE A: initialize with the preferences set in DOTween's Utility Panel
 		﻿﻿﻿﻿﻿DOTween.Init();
 		﻿﻿﻿﻿﻿// EXAMPLE B: initialize with custom settings, and set capacities immediately
 		﻿﻿﻿﻿﻿DOTween.Init(true, true, LogBehaviour.Verbose).SetCapacity(200, 10);
+
+		//获取需要监听的按钮对象
+		GameObject button= GameObject.Find("Canvas/Button");
+		                //设置这个按钮的监听，指向本类的ButtonClick方法中。
+		EventTriggerListener.Get(button.gameObject).onClick= ButtonClick;
     }
 
+	void ButtonClick(GameObject button)
+	{
+		Debug.Log("GameObject "+ button.name);
+        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
+        go = Instantiate(go);
+        go.transform.parent = _roleNode2.transform;
+        go.transform.localPosition = new Vector3(0, 0, 0);
+		Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position );//将对象坐标换成屏幕坐标
+		Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
+		Debug.Log("mousePos=" + mousePos);
+        go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
+
+        _placingGO = go;
+        // go.transform.Rotate(0, 180, 0, Space.Self);
+	}
     void init(List<List<Role>> instances, ConfigTeamParams _config){
         switch(_config.formation) {
         	case FORMATION.RECT:
@@ -106,7 +133,7 @@ public class StartDemo : MonoBehaviour
 		            soldier_model_custom_data.setPower(1);
 		            soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
 		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-		            soldier_model_custom_data.getAnimator().Play("idle", 0, 0);
+		            soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
 			        // soldier_model_custom_data.getAnimator().SetLookAtPosition(tarPos);
 			        Role role = new Role(go, x, y);
 			        colRoles.Add(role);
@@ -155,6 +182,26 @@ public class StartDemo : MonoBehaviour
         	Debug.Log("_configTeamA=" + _configTeamA.show + ", _configTeamB=" + _configTeamB.number);
         else
         	Debug.Log("_configTeamA");
+
+        if (_placingGO != null) {
+			// 按下鼠标左键
+        	GameObject go = _placingGO;
+			Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position );//将对象坐标换成屏幕坐标
+			Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
+			Debug.Log("mousePos=" + mousePos);
+	        go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
+	        if (Input.GetMouseButtonDown(0)) {
+	            Debug.Log ("你按下了鼠标左键");
+	        }
+	        // 按住鼠标左键
+	        if (Input.GetMouseButton(0)) {
+	            Debug.Log ("你按住了鼠标左键");
+	        }
+	        // 抬起鼠标左键
+	        if (Input.GetMouseButtonUp(0)) {
+	            Debug.Log ("你抬起了鼠标左键" + go);
+	        }
+        }
     }
 
     public void changeState(GAME_STATE state) {
@@ -181,14 +228,19 @@ public class StartDemo : MonoBehaviour
     }
 
     public void Move() {
+		Debug.Log("_instancesA=" + _instancesA);
+		Debug.Log("_instancesA size=" + _instancesA.Count);
     	foreach (List<Role> colRoles in _instancesA) {
     		foreach (Role role in colRoles) {
     			GameObject go = role.getGo();
 			    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
-			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + new Vector3(200,0,100), 1);
+			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + new Vector3(0,0,-100), 1000);
+		        ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
+		        soldier_model_custom_data.getAnimator().Play("Move", 0, 0);
     		}
     	}
     }
+
 
     private void loopGame() {
   //       Vector3 tarPos = new Vector3(-1.0f, 0.0f, -1.0f);
