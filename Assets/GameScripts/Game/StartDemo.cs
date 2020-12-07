@@ -23,6 +23,12 @@ public enum ROLE_SHOW_STATE
     SHOW = 1,
 }
 
+public enum INTERACTIVE_STATE {
+	INVALID = 0,
+	SELECTING = 1,
+	SELECTED = 2,
+	PLACED = 3,
+}
 public enum FORMATION {
     CIRCLE = 0,
     RECT = 1,
@@ -78,12 +84,15 @@ public class StartDemo : MonoBehaviour
     private GameObject _roleNode1;
     private GameObject _roleNode2;
     private GameObject _placingGO;
+    private GameObject _placedGO;
+    private INTERACTIVE_STATE _interactiveState;
 
 
     // Start is called before the first frame update
     void Start()
     {
         _gameState = GAME_STATE.READY;
+        _interactiveState = INTERACTIVE_STATE.INVALID;
 		_roleNode1 = GameObject.Find("Terrain/RoleNode1");
 		_roleNode2 = GameObject.Find("Terrain/RoleNode2");
 		// EXAMPLE A: initialize with the preferences set in DOTween's Utility Panel
@@ -109,6 +118,7 @@ public class StartDemo : MonoBehaviour
 		Debug.Log("mousePos=" + mousePos);
         go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
 
+        _interactiveState = INTERACTIVE_STATE.SELECTING;
         _placingGO = go;
         // go.transform.Rotate(0, 180, 0, Space.Self);
 	}
@@ -188,7 +198,7 @@ public class StartDemo : MonoBehaviour
         	GameObject go = _placingGO;
 			Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position );//将对象坐标换成屏幕坐标
 			Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
-			Debug.Log("mousePos=" + mousePos);
+			// Debug.Log("mousePos=" + mousePos);
 	        go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
 	        if (Input.GetMouseButtonDown(0)) {
 	            Debug.Log ("你按下了鼠标左键");
@@ -199,13 +209,38 @@ public class StartDemo : MonoBehaviour
 	        }
 	        // 抬起鼠标左键
 	        if (Input.GetMouseButtonUp(0)) {
-	            Debug.Log ("你抬起了鼠标左键" + go);
+	            Debug.Log ("你抬起了鼠标左键" + _placingGO + ", state=" + _interactiveState);
+	           	switch (_interactiveState) {
+	           		case INTERACTIVE_STATE.SELECTING:
+	           			changeInteractiveState();
+	           		break;
+	           		case INTERACTIVE_STATE.SELECTED:
+	           			changeInteractiveState();
+	           			_placingGO = null;
+	           		break;
+	           		case INTERACTIVE_STATE.PLACED:
+	           			changeInteractiveState();
+	           		break;
+	           		default:
+	           		break;
+	           	}
 	        }
         }
     }
 
     public void changeState(GAME_STATE state) {
     	_gameState = state;
+    }
+
+    public void changeInteractiveState() {
+    	if (_interactiveState == INTERACTIVE_STATE.SELECTING) {
+    		_interactiveState = INTERACTIVE_STATE.SELECTED;
+    	} else if (_interactiveState == INTERACTIVE_STATE.SELECTED) {
+    		_interactiveState = INTERACTIVE_STATE.PLACED;
+    	} else if (_interactiveState == INTERACTIVE_STATE.PLACED) {
+    		_interactiveState = INTERACTIVE_STATE.INVALID;
+    	}
+    	Debug.Log("interactive state=" + _interactiveState);
     }
 
     public void Init() {
