@@ -4,7 +4,11 @@ using UnityEngine;
 using DG.Tweening;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
-
+using System;
+/*
+1. 阴影
+2. 随机生成
+*/
 public enum ROLE_STATE
 {
     UNKNOWN = 0,
@@ -102,6 +106,16 @@ public class Role {
 //     }
 //     return false;  
 // }  
+
+public class DelayToInvoke : MonoBehaviour
+{
+
+	public static IEnumerator DelayToInvokeDo(Action action, float delaySeconds)
+	{
+		yield return new WaitForSeconds(delaySeconds);
+		action();
+	}
+}
 
 public class StartDemo : MonoBehaviour
 {
@@ -372,11 +386,14 @@ public class StartDemo : MonoBehaviour
 		Debug.Log("_instancesA size=" + _instancesA.Count);
     	foreach (List<Role> colRoles in _instancesA) {
     		foreach (Role role in colRoles) {
-    			GameObject go = role.getGo();
-			    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
-			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + _configTeamA.endPos, 1000);
-		        ModelCustomData customData = go.GetComponent<ModelCustomData>();
-		        customData.getAnimator().Play("Move", 0, 0);
+		        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
+	    			GameObject go = role.getGo();
+				    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
+				    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + _configTeamA.endPos, 1000);
+			        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+			        customData.getAnimator().Play("Move", 0, 0);
+					}, UnityEngine.Random.Range(0.0f, 3.0f))
+		        );
     		}
     	}
 

@@ -79,7 +79,12 @@ public class StartDemoToolsInspector : Editor
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        configTeam.teamRect = EditorGUILayout.Vector2IntField("阵容范围(长宽)：", configTeam.teamRect);
+        Vector2Int v2i = EditorGUILayout.Vector2IntField("阵容范围(长宽)：", configTeam.teamRect);
+        if (configTeam.teamRect != v2i) {
+            Debug.Log("configTeam.teamRect=" + configTeam.teamRect + ", v2i=" + v2i);
+            configTeam.teamRect = v2i;
+            configTeam.number = v2i.x * v2i.y;
+        }
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
