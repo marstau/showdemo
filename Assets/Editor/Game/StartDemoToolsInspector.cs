@@ -103,7 +103,7 @@ public class StartDemoToolsInspector : Editor
 
     private void init() {
         Debug.Log("OnInspectorGUI Init=" + this.isload);
-        _getStartDemo.Init();
+        _getStartDemo.InitParams();
         configTeamA = _getStartDemo.getConfigTeamA();
         configTeamB = _getStartDemo.getConfigTeamB();
 

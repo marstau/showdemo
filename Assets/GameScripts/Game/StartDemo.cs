@@ -149,7 +149,12 @@ public class StartDemo : MonoBehaviour
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
 			        go.transform.localPosition = new Vector3(x, 0, y);
-			        go.transform.Rotate(0, 180, 0, Space.Self);
+			        if (config.power == 1) {
+			        	go.transform.Rotate(0, 270, 0, Space.Self);
+		        	} else {
+			        	go.transform.Rotate(0, 90, 0, Space.Self);
+		        	}
+			        
 		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
 		            soldier_model_custom_data.setPower(config.power);
 		            soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
@@ -243,7 +248,7 @@ public class StartDemo : MonoBehaviour
 	        if (Input.GetMouseButton(0)) {
 	            Debug.Log ("你按住了鼠标左键");
 	        }
-	        
+
 	        if (Input.GetMouseButtonUp(0)) {
 	            Debug.Log ("你抬起了鼠标左键" + _tmpInstances + ", state=" + _interactiveState);
 	           	switch (_interactiveState) {
@@ -280,11 +285,11 @@ public class StartDemo : MonoBehaviour
     	Debug.Log("interactive state=" + _interactiveState);
     }
 
-    public void Init() {
+    public void InitParams() {
     	_configTeamA = new ConfigTeamParams();
     	_configTeamA.power = 1;
     	_configTeamA.formation = FORMATION.RECT;
-    	_configTeamA.teamRect = new Vector2Int(2, 10);
+    	_configTeamA.teamRect = new Vector2Int(25, 25);
 
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.power = 2;
