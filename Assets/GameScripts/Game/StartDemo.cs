@@ -45,6 +45,7 @@ public class ConfigTeamParams {
     public int number;
     public Vector2Int teamRect;
     public FORMATION formation;
+    public int power;
 }
 
 public enum GAME_STATE {
@@ -81,6 +82,9 @@ public class StartDemo : MonoBehaviour
     private List<List<Role>> _instancesB;
 
 
+    private List<List<Role>> _tmpInstances;
+
+
     private GameObject _roleNode1;
     private GameObject _roleNode2;
     private GameObject _placingGO;
@@ -109,24 +113,31 @@ public class StartDemo : MonoBehaviour
 	void ButtonClick(GameObject button)
 	{
 		Debug.Log("GameObject "+ button.name);
-        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
-        go = Instantiate(go);
-        go.transform.parent = _roleNode2.transform;
-        go.transform.localPosition = new Vector3(0, 0, 0);
-		Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position );//将对象坐标换成屏幕坐标
-		Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
-		Debug.Log("mousePos=" + mousePos);
-        go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
+  //       GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
+  //       go = Instantiate(go);
+  //       go.transform.parent = _roleNode2.transform;
+  //       go.transform.localPosition = new Vector3(0, 0, 0);
+		// Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position);//将对象坐标换成屏幕坐标
+		// Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
+		// Debug.Log("mousePos=" + mousePos);
+  //       go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
 
+  //       ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
+  //       soldier_model_custom_data.setPower(2);
+  //       soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+  //       soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+  //       soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
+
+        initTmpTeamB();
         _interactiveState = INTERACTIVE_STATE.SELECTING;
-        _placingGO = go;
+
         // go.transform.Rotate(0, 180, 0, Space.Self);
 	}
-    void init(List<List<Role>> instances, ConfigTeamParams _config){
-        switch(_config.formation) {
+    void init(List<List<Role>> instances, ConfigTeamParams config, GameObject parent){
+        switch(config.formation) {
         	case FORMATION.RECT:
-        	int width = _config.teamRect.x;
-        	int height = _config.teamRect.y;
+        	int width = config.teamRect.x;
+        	int height = config.teamRect.y;
         	Vector3 starPos = new Vector3(1.0f, 0.0f, 0.0f);
         	Vector3 tarPos = new Vector3(1.0f, 0.0f, 0.0f);
         	for (int x = 0; x < width; x++) {
@@ -136,11 +147,11 @@ public class StartDemo : MonoBehaviour
         			Debug.Log("create object " + x + ", " + y);
 			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
 			        go = Instantiate(go);
-			        go.transform.parent = _roleNode1.transform;
+			        go.transform.parent = parent.transform;
 			        go.transform.localPosition = new Vector3(x, 0, y);
 			        go.transform.Rotate(0, 180, 0, Space.Self);
 		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
-		            soldier_model_custom_data.setPower(1);
+		            soldier_model_custom_data.setPower(config.power);
 		            soldier_model_custom_data.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
 		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
 		            soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
@@ -153,11 +164,35 @@ public class StartDemo : MonoBehaviour
         }
     }
 
-    void initTeamA(){
-        _instancesA = new List<List<Role>>();
-        init(_instancesA, _configTeamA);
+	private static Ray ray;
+    /// <summary>
+    /// 和地面交点
+    /// </summary>
+    /// <returns></returns>
+    public static Vector3 GetPlaneInteractivePoint(float plane=0)
+    {
+        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Vector3 dir = ray.direction;
+        
+        if(dir.y.Equals(0)) return Vector3.zero;
+        float num=(plane-ray.origin.y)/dir.y;
+        return ray.origin + ray.direction * num;
     }
 
+    void initTeamA(){
+        _instancesA = new List<List<Role>>();
+        init(_instancesA, _configTeamA, _roleNode1);
+    }
+
+    void initTeamB(){
+        _instancesB = new List<List<Role>>();
+        init(_instancesB, _configTeamB, _roleNode2);
+    }
+
+    void initTmpTeamB(){
+        _tmpInstances = new List<List<Role>>();
+        init(_tmpInstances, _configTeamB, _roleNode2);
+    }
 
     void initBattleInfo(){
     	changeState(GAME_STATE.INIT_SCENE);
@@ -193,30 +228,32 @@ public class StartDemo : MonoBehaviour
         else
         	Debug.Log("_configTeamA");
 
-        if (_placingGO != null) {
-			// 按下鼠标左键
-        	GameObject go = _placingGO;
-			Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position );//将对象坐标换成屏幕坐标
-			Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
-			// Debug.Log("mousePos=" + mousePos);
-	        go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
+        if (_tmpInstances != null) {
+        	Vector3 rayPos = GetPlaneInteractivePoint();
+	    	foreach (List<Role> colRoles in _tmpInstances) {
+	    		foreach (Role role in colRoles) {
+	    			GameObject go = role.getGo();
+			        go.transform.position = rayPos + new Vector3(role.X, 0, role.Y);
+	    		}
+	    	}
+
 	        if (Input.GetMouseButtonDown(0)) {
 	            Debug.Log ("你按下了鼠标左键");
 	        }
-	        // 按住鼠标左键
 	        if (Input.GetMouseButton(0)) {
 	            Debug.Log ("你按住了鼠标左键");
 	        }
-	        // 抬起鼠标左键
+	        
 	        if (Input.GetMouseButtonUp(0)) {
-	            Debug.Log ("你抬起了鼠标左键" + _placingGO + ", state=" + _interactiveState);
+	            Debug.Log ("你抬起了鼠标左键" + _tmpInstances + ", state=" + _interactiveState);
 	           	switch (_interactiveState) {
 	           		case INTERACTIVE_STATE.SELECTING:
 	           			changeInteractiveState();
 	           		break;
 	           		case INTERACTIVE_STATE.SELECTED:
 	           			changeInteractiveState();
-	           			_placingGO = null;
+	           			_instancesB = _tmpInstances;
+	           			_tmpInstances = null;
 	           		break;
 	           		case INTERACTIVE_STATE.PLACED:
 	           			changeInteractiveState();
@@ -245,7 +282,14 @@ public class StartDemo : MonoBehaviour
 
     public void Init() {
     	_configTeamA = new ConfigTeamParams();
+    	_configTeamA.power = 1;
+    	_configTeamA.formation = FORMATION.RECT;
+    	_configTeamA.teamRect = new Vector2Int(2, 10);
+
     	_configTeamB = new ConfigTeamParams();
+    	_configTeamB.power = 2;
+    	_configTeamB.formation = FORMATION.RECT;
+    	_configTeamB.teamRect = new Vector2Int(2, 10);
     }
 
     public void resetGame(){
