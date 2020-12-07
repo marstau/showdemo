@@ -138,8 +138,8 @@ public class StartDemo : MonoBehaviour
         	case FORMATION.RECT:
         	int width = config.teamRect.x;
         	int height = config.teamRect.y;
-        	Vector3 starPos = new Vector3(1.0f, 0.0f, 0.0f);
-        	Vector3 tarPos = new Vector3(1.0f, 0.0f, 0.0f);
+        	Vector3 startPos = config.startPos;
+        	Vector3 tarPos = config.endPos;
         	for (int x = 0; x < width; x++) {
         		List<Role> colRoles = new List<Role>();
         		instances.Add(colRoles);
@@ -148,11 +148,11 @@ public class StartDemo : MonoBehaviour
 			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
-			        go.transform.localPosition = new Vector3(x, 0, y);
+			        go.transform.localPosition = new Vector3(x, 0, y) + startPos;
 			        if (config.power == 1) {
-			        	go.transform.Rotate(0, 270, 0, Space.Self);
-		        	} else {
 			        	go.transform.Rotate(0, 90, 0, Space.Self);
+		        	} else {
+			        	go.transform.Rotate(0, 270, 0, Space.Self);
 		        	}
 			        
 		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
@@ -290,10 +290,14 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.power = 1;
     	_configTeamA.formation = FORMATION.RECT;
     	_configTeamA.teamRect = new Vector2Int(25, 25);
+    	_configTeamA.startPos = new Vector3(-30,0,0);
+    	_configTeamA.endPos = new Vector3(100,0,0);
 
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.power = 2;
     	_configTeamB.formation = FORMATION.RECT;
+    	_configTeamB.startPos = Vector3.zero;
+    	_configTeamB.endPos = Vector3.zero;
     	_configTeamB.teamRect = new Vector2Int(2, 10);
     }
 
@@ -318,7 +322,7 @@ public class StartDemo : MonoBehaviour
     		foreach (Role role in colRoles) {
     			GameObject go = role.getGo();
 			    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
-			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + new Vector3(0,0,-100), 1000);
+			    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + _configTeamA.endPos, 1000);
 		        ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
 		        soldier_model_custom_data.getAnimator().Play("Move", 0, 0);
     		}
