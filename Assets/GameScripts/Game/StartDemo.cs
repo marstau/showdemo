@@ -58,12 +58,14 @@ public enum GAME_STATE {
 public class Role {
 	private GameObject _obj;
 	private ROLE_STATE _state;
+	public int health{set;get;}
 	public int X{set;get;}
 	public int Y{set;get;}
-	public Role(GameObject obj, int _x, int _y){
+	public Role(GameObject obj, int _x, int _y, int health){
 		_obj = obj;
 		X = _x;
 		Y = _y;
+		this.health = health;
 	}
 
 	public GameObject getGo() { return _obj; }
@@ -71,7 +73,28 @@ public class Role {
 
 		_state = ROLE_STATE.WALK;
 	}
+
+
+	public bool isCollision(Vector3 pos) {
+		Vector3 colliderPos = _obj.transform.position;
+		float x = colliderPos.x;
+		float y = colliderPos.y;
+		float z = colliderPos.z;
+		const float halfWidth = 0.5f;
+		const float halfHeight = 0.5f;
+		if (pos.x >= x - halfWidth && pos.x <= x + halfWidth && pos.z >= z - halfHeight && pos.z <= z + halfHeight) {
+			return true;
+		}
+		return false;
+	}
 }
+
+// public static boolean isCollision(int x1, int y1, int x2, int y2, int w, int h) {  
+//     if (x1 >= x2 && x1 <= x2 + w && y1 >= y2 && y1 <= y2 + h) {
+//         return true;  
+//     }
+//     return false;  
+// }  
 
 public class StartDemo : MonoBehaviour
 {
@@ -80,7 +103,6 @@ public class StartDemo : MonoBehaviour
     private ConfigTeamParams _configTeamB;
     private List<List<Role>> _instancesA;
     private List<List<Role>> _instancesB;
-
 
     private List<List<Role>> _tmpInstances;
 
@@ -108,6 +130,10 @@ public class StartDemo : MonoBehaviour
 		GameObject button= GameObject.Find("Canvas/Button");
 		                //设置这个按钮的监听，指向本类的ButtonClick方法中。
 		EventTriggerListener.Get(button.gameObject).onClick= ButtonClick;
+
+        _instancesA = new List<List<Role>>();
+        _instancesB = new List<List<Role>>();
+		// _colliders = new Dictionary<>();
     }
 
 	void ButtonClick(GameObject button)
@@ -149,10 +175,14 @@ public class StartDemo : MonoBehaviour
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
 			        go.transform.localPosition = new Vector3(x, 0, y) + startPos;
+
+			        Role role;
 			        if (config.power == 1) {
 			        	go.transform.Rotate(0, 90, 0, Space.Self);
+			        	role = new Role(go, x, y, 1);
 		        	} else {
 			        	go.transform.Rotate(0, 270, 0, Space.Self);
+			        	role = new Role(go, x, y, 2);
 		        	}
 			        
 		            ModelCustomData soldier_model_custom_data = go.GetComponent<ModelCustomData>();
@@ -161,7 +191,6 @@ public class StartDemo : MonoBehaviour
 		            soldier_model_custom_data.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
 		            soldier_model_custom_data.getAnimator().Play("Idle", 0, 0);
 			        // soldier_model_custom_data.getAnimator().SetLookAtPosition(tarPos);
-			        Role role = new Role(go, x, y);
 			        colRoles.Add(role);
         		}
         	}
@@ -185,12 +214,10 @@ public class StartDemo : MonoBehaviour
     }
 
     void initTeamA(){
-        _instancesA = new List<List<Role>>();
         init(_instancesA, _configTeamA, _roleNode1);
     }
 
     void initTeamB(){
-        _instancesB = new List<List<Role>>();
         init(_instancesB, _configTeamB, _roleNode2);
     }
 
@@ -203,6 +230,15 @@ public class StartDemo : MonoBehaviour
     	changeState(GAME_STATE.INIT_SCENE);
     	initTeamA();
     	changeState(GAME_STATE.DURATION);
+    }
+
+    void FixedUpdate() {
+
+    	switch (_gameState) {
+    		case GAME_STATE.DURATION:
+    			loopGame();
+    		break;
+    	}
     }
     // Update is called once per frame
     void Update()
@@ -222,7 +258,6 @@ public class StartDemo : MonoBehaviour
     		break;
 
     		case GAME_STATE.DURATION:
-    			loopGame();
     		break;
 
     		case GAME_STATE.END:
@@ -307,6 +342,12 @@ public class StartDemo : MonoBehaviour
 		for (int i = 0; i < transform.childCount; i++) {  
             Destroy(transform.GetChild (i).gameObject);  
         }
+    	transform = _roleNode2.transform;
+		for (int i = 0; i < transform.childCount; i++) {  
+            Destroy(transform.GetChild (i).gameObject);  
+        }
+        _instancesA.Clear();
+        _instancesB.Clear();
     }
     public ConfigTeamParams getConfigTeamA() {
     	return _configTeamA;
@@ -327,6 +368,7 @@ public class StartDemo : MonoBehaviour
 		        soldier_model_custom_data.getAnimator().Play("Move", 0, 0);
     		}
     	}
+
     }
 
 
@@ -335,13 +377,46 @@ public class StartDemo : MonoBehaviour
 
   //   	Vector3 TargetPosition = new Vector3(1000,0,1000);
 		// float AvatarRange = 25;
-		// Debug.Log("_instancesA=" + _instancesA);
-		// Debug.Log("_instancesA size=" + _instancesA.Count);
-  //   	foreach (List<Role> colRoles in _instancesA) {
-  //   		foreach (Role role in colRoles) {
-  //   			GameObject go = role.getGo();
-  //   			Transform transform = go.transform;
-  //   		}
-  //   	}
+		Debug.Log("_instancesA=" + _instancesA + ", " + _instancesB);
+		Debug.Log("_instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
+
+    	bool role2Dead = false;
+		for (int j2 = _instancesB.Count-1; j2 >= 0; j2--) {
+			List<Role> roleList2 = _instancesB[j2];
+			for (int k2 = roleList2.Count - 1; k2 >= 0; k2--) {
+				Role role2 = roleList2[k2];
+    			GameObject go2 = role2.getGo();
+    			Transform transform2 = go2.transform;
+
+				role2Dead = false;
+				for (int j = _instancesA.Count-1; j >= 0; j--) {
+					List<Role> roleList = _instancesA[j];
+					for (int k = roleList.Count - 1; k >= 0; k--) {
+						Role role = roleList[k];
+		    			GameObject go = role.getGo();
+		    			Transform transform = go.transform;
+						if (role.isCollision(transform2.position)) {
+							Debug.Log("Collision=" + j + "," + k + ", A position=" + transform.position);
+							role2.health -= role.health;
+							Destroy(go);
+							roleList.RemoveAt(k);
+							if (role2.health <= 0) {
+								role2Dead = true;
+							 	break;
+							}
+						}
+					}
+					if (role2Dead) break;
+				}
+
+				if (role2Dead) {
+					Destroy(go2);
+					roleList2.RemoveAt(k2);
+				}
+			}
+		}
+
+    	// check collision.
+
     }
 }
