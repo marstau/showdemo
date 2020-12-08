@@ -350,7 +350,7 @@ public class StartDemo : MonoBehaviour
 	           		break;
 	           		case INTERACTIVE_STATE.SELECTED:
 	           			changeInteractiveState();
-	           			_instancesB = _tmpInstances;
+	           			_instancesB.AddRange(_tmpInstances);
 	           			_tmpInstances = null;
 	           		break;
 	           		case INTERACTIVE_STATE.PLACED:
