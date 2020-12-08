@@ -6,8 +6,10 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System;
 /*
-1. 阴影
-2. 随机生成
+阴影
+随机生成
+其他阵容
+死亡击飞
 */
 public enum ROLE_STATE
 {
@@ -351,6 +353,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.teamRect = new Vector2Int(25, 25);
     	_configTeamA.startPos = new Vector3(-30,0,0);
     	_configTeamA.endPos = new Vector3(100,0,0);
+    	_configTeamA.number = _configTeamA.teamRect.x * _configTeamA.teamRect.y;
 
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.power = 2;
@@ -424,6 +427,11 @@ public class StartDemo : MonoBehaviour
 							role2.health -= role.health;
 							// Destroy(go);
 							_deadInstances.Add(role);
+
+							StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
+								_deadInstances.Remove(role);
+            					Destroy(role.getGo());
+							}, 3.0f));
 							role.die();
 							roleList.RemoveAt(k);
 							if (role2.health <= 0) {
@@ -438,6 +446,11 @@ public class StartDemo : MonoBehaviour
 				if (role2Dead) {
 					// Destroy(go2);
 					_deadInstances.Add(role2);
+
+					StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
+						_deadInstances.Remove(role2);
+            			Destroy(role2.getGo());
+					}, 3.0f));
 					role2.die();
 					roleList2.RemoveAt(k2);
 				}
