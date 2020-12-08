@@ -7,7 +7,6 @@ using UnityEngine.Events;
 using System;
 /*
 阴影
-随机生成
 其他阵容
 死亡击飞
 */
@@ -47,7 +46,7 @@ public class ConfigTeamParams {
     public ROLE_STATE move;
     public Vector3 startPos;
     public Vector3 endPos;
-    public double moveSpeed;
+    public float moveSpeed;
     public int number;
     public Vector2Int teamRect;
     public FORMATION formation;
@@ -192,23 +191,39 @@ public class StartDemo : MonoBehaviour
         	int height = config.teamRect.y;
         	Vector3 startPos = config.startPos;
         	Vector3 tarPos = config.endPos;
+
+        	bool [,] array = new bool[width,height];
+        	Debug.Log("config.number=" + config.number + ", " + width*height);
+        	if (config.number < width * height) {
+	        	for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
+	        		int w = UnityEngine.Random.Range(0, width);
+	        		int h = UnityEngine.Random.Range(0, height);
+	        		array[w, h] = true;
+	        	}
+        	}
+
         	for (int x = 0; x < width; x++) {
         		List<Role> colRoles = new List<Role>();
         		instances.Add(colRoles);
         		for (int y = 0; y < height; y++) {
+        			if (array[x, y]) {
+	        			Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
+        				continue;
+        			}
         			Debug.Log("create object " + x + ", " + y);
 			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
-			        go.transform.localPosition = new Vector3(x, 0, y) + startPos;
 
 			        Role role;
 			        if (config.power == 1) {
 			        	go.transform.Rotate(0, 90, 0, Space.Self);
 			        	role = new Role(go, x, y, 1);
+			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
 		        	} else {
 			        	go.transform.Rotate(0, 270, 0, Space.Self);
 			        	role = new Role(go, x, y, 2);
+			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos;
 		        	}
 			        
 		            ModelCustomData customData = go.GetComponent<ModelCustomData>();
@@ -353,6 +368,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.teamRect = new Vector2Int(25, 25);
     	_configTeamA.startPos = new Vector3(-30,0,0);
     	_configTeamA.endPos = new Vector3(100,0,0);
+    	_configTeamA.moveSpeed = 1.0f;
     	_configTeamA.number = _configTeamA.teamRect.x * _configTeamA.teamRect.y;
 
     	_configTeamB = new ConfigTeamParams();
@@ -360,7 +376,9 @@ public class StartDemo : MonoBehaviour
     	_configTeamB.formation = FORMATION.RECT;
     	_configTeamB.startPos = Vector3.zero;
     	_configTeamB.endPos = Vector3.zero;
+    	_configTeamB.moveSpeed = 0.0f;
     	_configTeamB.teamRect = new Vector2Int(2, 10);
+    	_configTeamB.number = _configTeamB.teamRect.x * _configTeamB.teamRect.y;
     }
 
     public void resetGame(){
@@ -387,15 +405,20 @@ public class StartDemo : MonoBehaviour
     public void Move() {
 		Debug.Log("_instancesA=" + _instancesA);
 		Debug.Log("_instancesA size=" + _instancesA.Count);
+		float dis = (_configTeamA.startPos - _configTeamA.endPos).magnitude;
+		float time = 1000;
+		if (_configTeamA.moveSpeed > 0) {
+			time = dis/_configTeamA.moveSpeed;
+		}
     	foreach (List<Role> colRoles in _instancesA) {
     		foreach (Role role in colRoles) {
 		        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
 	    			GameObject go = role.getGo();
-				    go.transform.localPosition = new Vector3(role.X, 0, role.Y) + _configTeamA.startPos;
-				    go.transform.DOMove(new Vector3(role.X, 0, role.Y) + _configTeamA.endPos, 1000);
+	    			Debug.Log("move direction=" + (_configTeamA.endPos - _configTeamA.startPos) );
+				    go.transform.DOLocalMove(_configTeamA.endPos - _configTeamA.startPos, time);
 			        ModelCustomData customData = go.GetComponent<ModelCustomData>();
 			        customData.getAnimator().Play("Move", 0, 0);
-					}, UnityEngine.Random.Range(0.0f, 3.0f))
+					}, UnityEngine.Random.Range(0.0f, 1.0f))
 		        );
     		}
     	}

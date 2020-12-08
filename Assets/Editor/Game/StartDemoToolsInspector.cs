@@ -76,6 +76,10 @@ public class StartDemoToolsInspector : Editor
 
         EditorGUILayout.BeginHorizontal();
         configTeam.number = EditorGUILayout.IntField("数量：", configTeam.number);
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        configTeam.moveSpeed = EditorGUILayout.FloatField("移速：", configTeam.moveSpeed);
+
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
