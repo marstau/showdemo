@@ -8,7 +8,6 @@ using System;
 /*
 阴影
 其他阵容
-死亡击飞
 */
 public enum ROLE_STATE
 {
@@ -85,6 +84,25 @@ public class Role {
         ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
         transform.DOKill();
         customData.getAnimator().Play("Die", 0, 0);
+	}
+
+	public void jumpDie() {
+		int resolution = 20;
+		float height = 0.5f;
+		float x = 3f;
+		float time = 0.4f;
+
+		// 绘制抛物线
+		Transform transform = _obj.transform;
+		Vector3 localPosition = transform.localPosition;
+        ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
+        customData.getAnimator().Play("Die", 0, 0);
+		Sequence s = DOTween.Sequence();
+        s.Append(transform.DOLocalMoveX(x + localPosition.x, time).SetEase(Ease.Linear));
+        s.Insert(0, transform.DOLocalMoveY(height, time/2).SetEase(Ease.OutCirc));
+        //下落
+        s.Insert(time/2, transform.DOLocalMoveY(height/2, time/2).SetEase(Ease.InCirc));
+        s.SetLoops(0);
 	}
 
 	public bool isCollision(Vector3 pos) {
@@ -191,7 +209,6 @@ public class StartDemo : MonoBehaviour
         	int height = config.teamRect.y;
         	Vector3 startPos = config.startPos;
         	Vector3 tarPos = config.endPos;
-
         	bool [,] array = new bool[width,height];
         	Debug.Log("config.number=" + config.number + ", " + width*height);
         	if (config.number < width * height) {
@@ -427,6 +444,10 @@ public class StartDemo : MonoBehaviour
 
 
     private void fixedLoopGame() {
+    	if (_instancesB == null || _instancesB == null) {
+
+			Debug.Log("fixedLoopGame=" + _instancesA + ", " + _instancesB);	
+    	}
 		Debug.Log("_instancesA=" + _instancesA + ", " + _instancesB);
 		Debug.Log("_instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
 
@@ -474,7 +495,7 @@ public class StartDemo : MonoBehaviour
 						_deadInstances.Remove(role2);
             			Destroy(role2.getGo());
 					}, 3.0f));
-					role2.die();
+					role2.jumpDie();
 					roleList2.RemoveAt(k2);
 				}
 			}
