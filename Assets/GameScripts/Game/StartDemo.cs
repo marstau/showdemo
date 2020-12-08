@@ -105,7 +105,7 @@ public class Role {
         s.SetLoops(0);
 	}
 
-	public bool isCollision(Vector3 pos) {
+	public bool isCollisionBox(Vector3 pos) {
 		Vector3 colliderPos = _obj.transform.position;
 		float x = colliderPos.x;
 		float y = colliderPos.y;
@@ -117,14 +117,21 @@ public class Role {
 		}
 		return false;
 	}
-}
 
-// public static boolean isCollision(int x1, int y1, int x2, int y2, int w, int h) {  
-//     if (x1 >= x2 && x1 <= x2 + w && y1 >= y2 && y1 <= y2 + h) {
-//         return true;  
-//     }
-//     return false;  
-// }  
+	public bool isCollisionSphere(Vector3 pos) {
+		Vector3 colliderPos = _obj.transform.position;
+		float x = colliderPos.x;
+		float y = colliderPos.y;
+		float z = colliderPos.z;
+		float r = 0.5f;
+
+		if (Mathf.Pow(x - pos.x, 2) + Mathf.Pow(z - pos.z, 2) <= r*r) {
+            return true;
+        }
+		return false;
+	}
+
+}
 
 public class DelayToInvoke : MonoBehaviour
 {
@@ -404,6 +411,7 @@ public class StartDemo : MonoBehaviour
 		for (int i = 0; i < transform.childCount; i++) {  
             Destroy(transform.GetChild (i).gameObject);  
         }
+        _configTeamA.move = ROLE_STATE.UNKNOWN;
     	transform = _roleNode2.transform;
 		for (int i = 0; i < transform.childCount; i++) {  
             Destroy(transform.GetChild (i).gameObject);  
@@ -466,7 +474,7 @@ public class StartDemo : MonoBehaviour
 						Role role = roleList[k];
 		    			GameObject go = role.getGo();
 		    			Transform transform = go.transform;
-						if (role.isCollision(transform2.position)) {
+						if (role.isCollisionBox(transform2.position)) {
 							Debug.Log("Collision=" + j + "," + k + ", A position=" + transform.position);
 							role2.health -= role.health;
 							// Destroy(go);
