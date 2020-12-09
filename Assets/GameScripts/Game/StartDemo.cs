@@ -5,6 +5,8 @@ using DG.Tweening;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using System;
+using UnityEditor;
+
 /*
 阴影
 其他阵容
@@ -30,9 +32,11 @@ public enum ROLE_SHOW_STATE
 
 public enum INTERACTIVE_STATE {
 	INVALID = 0,
-	SELECTING = 1,
-	SELECTED = 2,
-	PLACED = 3,
+	SELECTINGA = 1,
+	SELECTINGB = 2,
+	SELECTEDA = 3,
+	SELECTEDB = 4,
+	PLACED = 5,
 }
 public enum FORMATION {
     CIRCLE = 0,
@@ -51,6 +55,7 @@ public class ConfigTeamParams {
     public Vector2Int teamRect;
     public FORMATION formation;
     public int power;
+    public int random;
 }
 
 public enum GAME_STATE {
@@ -60,6 +65,7 @@ public enum GAME_STATE {
 	DURATION = 4,
 	END = 5,
 }
+
 public class Role {
 	private GameObject _obj;
 	private ROLE_STATE _state;
@@ -134,6 +140,10 @@ public class Role {
 
 }
 
+public class Team {
+
+}
+
 public class DelayToInvoke : MonoBehaviour
 {
 
@@ -147,7 +157,7 @@ public class DelayToInvoke : MonoBehaviour
 public class StartDemo : MonoBehaviour
 {
 	private GAME_STATE _gameState;
-    private ConfigTeamParams _configTeamA;
+    public ConfigTeamParams _configTeamA;
     private ConfigTeamParams _configTeamB;
     private List<List<Role>> _instancesA;
     private List<List<Role>> _instancesB;
@@ -156,60 +166,51 @@ public class StartDemo : MonoBehaviour
 
     private List<Role> _deadInstances;
 
-
-    private GameObject _roleNode1;
-    private GameObject _roleNode2;
     private GameObject _placingGO;
     private GameObject _placedGO;
     private INTERACTIVE_STATE _interactiveState;
 
+
+    private int _rootGoIndex;
 
     // Start is called before the first frame update
     void Start()
     {
         _gameState = GAME_STATE.READY;
         _interactiveState = INTERACTIVE_STATE.INVALID;
-		_roleNode1 = GameObject.Find("Terrain/RoleNode1");
-		_roleNode2 = GameObject.Find("Terrain/RoleNode2");
 		// EXAMPLE A: initialize with the preferences set in DOTween's Utility Panel
 		﻿﻿﻿﻿﻿DOTween.Init();
 		﻿﻿﻿﻿﻿// EXAMPLE B: initialize with custom settings, and set capacities immediately
 		﻿﻿﻿﻿﻿DOTween.Init(true, true, LogBehaviour.Verbose).SetCapacity(200, 10);
 
-		//获取需要监听的按钮对象
-		GameObject button= GameObject.Find("Canvas/Button");
-		//设置这个按钮的监听，指向本类的ButtonClick方法中。
-		EventTriggerListener.Get(button.gameObject).onClick= ButtonClick;
+		GameObject button1= GameObject.Find("Canvas/Button1");
+		EventTriggerListener.Get(button1.gameObject).onClick= ButtonClick1;
+
+		GameObject button2= GameObject.Find("Canvas/Button2");
+		EventTriggerListener.Get(button2.gameObject).onClick= ButtonClick2;
 
         _instancesA = new List<List<Role>>();
         _instancesB = new List<List<Role>>();
         _deadInstances = new List<Role>();
 		// _colliders = new Dictionary<>();
+
+		_rootGoIndex = 1;
     }
 
-	void ButtonClick(GameObject button)
+	void ButtonClick1(GameObject button)
 	{
 		Debug.Log("GameObject "+ button.name);
-  //       GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
-  //       go = Instantiate(go);
-  //       go.transform.parent = _roleNode2.transform;
-  //       go.transform.localPosition = new Vector3(0, 0, 0);
-		// Vector3 pos= Camera.main.WorldToScreenPoint(go.transform.position);//将对象坐标换成屏幕坐标
-		// Vector3 mousePos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, pos.z);//让鼠标的屏幕坐标与对象坐标一致
-		// Debug.Log("mousePos=" + mousePos);
-  //       go.transform.position = Camera.main.ScreenToWorldPoint(mousePos);//将正确的鼠标屏幕坐标换成世界坐标交给物体
-
-  //       ModelCustomData customData = go.GetComponent<ModelCustomData>();
-  //       customData.setPower(2);
-  //       customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-  //       customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-  //       customData.getAnimator().Play("Idle", 0, 0);
-
-        initTmpTeamB();
-        _interactiveState = INTERACTIVE_STATE.SELECTING;
-
-        // go.transform.Rotate(0, 180, 0, Space.Self);
+        initTmpTeamA();
+        _interactiveState = INTERACTIVE_STATE.SELECTINGA;
 	}
+
+	void ButtonClick2(GameObject button)
+	{
+		Debug.Log("GameObject "+ button.name);
+        initTmpTeamB();
+        _interactiveState = INTERACTIVE_STATE.SELECTINGB;
+	}
+
     void init(List<List<Role>> instances, ConfigTeamParams config, GameObject parent){
         switch(config.formation) {
         	case FORMATION.RECT:
@@ -279,22 +280,32 @@ public class StartDemo : MonoBehaviour
         return ray.origin + ray.direction * num;
     }
 
-    void initTeamA(){
-        init(_instancesA, _configTeamA, _roleNode1);
-    }
+    // void initTeamA(){
+    //     init(_instancesA, _configTeamA, _roleNode1);
+    // }
 
-    void initTeamB(){
-        init(_instancesB, _configTeamB, _roleNode2);
-    }
+    // void initTeamB(){
+    //     init(_instancesB, _configTeamB, _roleNode2);
+    // }
 
     void initTmpTeamB(){
+		GameObject rootGo = new GameObject("Formation" + _rootGoIndex++);
+		rootGo.transform.parent = this.gameObject.transform;
         _tmpInstances = new List<List<Role>>();
-        init(_tmpInstances, _configTeamB, _roleNode2);
+        init(_tmpInstances, _configTeamB, rootGo);
     }
+
+    void initTmpTeamA(){
+		GameObject rootGo = new GameObject("Formation" + _rootGoIndex++);
+		rootGo.transform.parent = this.gameObject.transform;
+        _tmpInstances = new List<List<Role>>();
+        init(_tmpInstances, _configTeamA, rootGo);
+    }
+
 
     void initBattleInfo(){
     	changeState(GAME_STATE.INIT_SCENE);
-    	initTeamA();
+    	// initTeamA();
     	changeState(GAME_STATE.DURATION);
     }
 
@@ -353,12 +364,18 @@ public class StartDemo : MonoBehaviour
 	        if (Input.GetMouseButtonUp(0)) {
 	            Debug.Log ("你抬起了鼠标左键" + _tmpInstances + ", state=" + _interactiveState);
 	           	switch (_interactiveState) {
-	           		case INTERACTIVE_STATE.SELECTING:
+	           		case INTERACTIVE_STATE.SELECTINGB:
+	           		case INTERACTIVE_STATE.SELECTINGA:
 	           			changeInteractiveState();
 	           		break;
-	           		case INTERACTIVE_STATE.SELECTED:
+	           		case INTERACTIVE_STATE.SELECTEDB:
 	           			changeInteractiveState();
 	           			_instancesB.AddRange(_tmpInstances);
+	           			_tmpInstances = null;
+	           		break;
+	           		case INTERACTIVE_STATE.SELECTEDA:
+	           			changeInteractiveState();
+	           			_instancesA.AddRange(_tmpInstances);
 	           			_tmpInstances = null;
 	           		break;
 	           		case INTERACTIVE_STATE.PLACED:
@@ -376,13 +393,22 @@ public class StartDemo : MonoBehaviour
     }
 
     public void changeInteractiveState() {
-    	if (_interactiveState == INTERACTIVE_STATE.SELECTING) {
-    		_interactiveState = INTERACTIVE_STATE.SELECTED;
-    	} else if (_interactiveState == INTERACTIVE_STATE.SELECTED) {
-    		_interactiveState = INTERACTIVE_STATE.PLACED;
-    	} else if (_interactiveState == INTERACTIVE_STATE.PLACED) {
-    		_interactiveState = INTERACTIVE_STATE.INVALID;
+    	switch (_interactiveState) {
+    		case INTERACTIVE_STATE.SELECTINGB:
+    			_interactiveState = INTERACTIVE_STATE.SELECTEDB;
+    		break;
+    		case INTERACTIVE_STATE.SELECTINGA:
+    			_interactiveState = INTERACTIVE_STATE.SELECTEDA;
+    		break;
+    		case INTERACTIVE_STATE.SELECTEDA:
+    		case INTERACTIVE_STATE.SELECTEDB:
+    			_interactiveState = INTERACTIVE_STATE.PLACED;
+    		break;
+    		case INTERACTIVE_STATE.PLACED:
+    			_interactiveState = INTERACTIVE_STATE.INVALID;
+    		break;
     	}
+
     	Debug.Log("interactive state=" + _interactiveState);
     }
 
@@ -408,18 +434,16 @@ public class StartDemo : MonoBehaviour
 
     public void resetGame(){
     	changeState(GAME_STATE.READY);
-    	Transform transform = _roleNode1.transform;
+
+    	Transform transform = gameObject.transform;
 		for (int i = 0; i < transform.childCount; i++) {  
             Destroy(transform.GetChild (i).gameObject);  
         }
         _configTeamA.move = ROLE_STATE.UNKNOWN;
-    	transform = _roleNode2.transform;
-		for (int i = 0; i < transform.childCount; i++) {  
-            Destroy(transform.GetChild (i).gameObject);  
-        }
         _instancesA.Clear();
         _instancesB.Clear();
         _deadInstances.Clear();
+        _rootGoIndex = 1;
     }
     public ConfigTeamParams getConfigTeamA() {
     	return _configTeamA;
