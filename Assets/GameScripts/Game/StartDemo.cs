@@ -502,6 +502,9 @@ public class StartDemo : MonoBehaviour
 
     }
 
+    public void Detect() {
+    }
+
 
     private void fixedLoopGame() {
     	if (_instancesA == null || _instancesB == null) {
@@ -516,6 +519,10 @@ public class StartDemo : MonoBehaviour
 			for (int k2 = roleList2.Count - 1; k2 >= 0; k2--) {
 				Role role2 = roleList2[k2];
     			GameObject go2 = role2.getGo();
+    			if (go2 == null) {
+    				roleList2.RemoveAt(k2);
+    				continue;
+    			}
     			Transform transform2 = go2.transform;
 
 				role2Dead = false;

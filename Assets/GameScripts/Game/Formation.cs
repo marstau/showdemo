@@ -14,6 +14,7 @@ public class Formation : MonoBehaviour
 	public ROLE_STATE roleState;
     public Vector3 startPos;
     public Vector3 endPos;
+    public bool clear;
 
     private ROLE_STATE _curState;
     public TEAM team {set;get;}
@@ -44,6 +45,12 @@ public class Formation : MonoBehaviour
     {
     	if (_curState != roleState) {
     		changeState();
+    	}
+
+    	if (clear) {
+	        StartDemo startDemo = transform.parent.GetComponent<StartDemo>();
+    		Destroy(gameObject);
+    		startDemo.Detect();
     	}
     }
 
