@@ -12,8 +12,7 @@ using UnityEditor;
 其他阵容
 碰撞优化
 */
-public enum ROLE_STATE
-{
+public enum ROLE_STATE {
     UNKNOWN = 0,
     IDLE = 1,
     ATTACK = 2,
@@ -24,8 +23,7 @@ public enum ROLE_STATE
 }
 
 
-public enum ROLE_SHOW_STATE
-{
+public enum ROLE_SHOW_STATE {
     HIDE = 0,
     SHOW = 1,
 }
@@ -47,7 +45,7 @@ public enum FORMATION {
 
 public class ConfigTeamParams {
     public bool show;
-    public ROLE_STATE move;
+    public ROLE_STATE roleState;
     public Vector3 startPos;
     public Vector3 endPos;
     public float moveSpeed;
@@ -55,7 +53,8 @@ public class ConfigTeamParams {
     public Vector2Int teamRect;
     public FORMATION formation;
     public int power;
-    public int random;
+    public bool randomGenerate;
+    public int health;
 }
 
 public enum GAME_STATE {
@@ -176,7 +175,7 @@ public class StartDemo : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _gameState = GAME_STATE.READY;
+        _gameState = GAME_STATE.START;
         _interactiveState = INTERACTIVE_STATE.INVALID;
 		// EXAMPLE A: initialize with the preferences set in DOTween's Utility Panel
 		﻿﻿﻿﻿﻿DOTween.Init();
@@ -214,17 +213,20 @@ public class StartDemo : MonoBehaviour
     void init(List<List<Role>> instances, ConfigTeamParams config, GameObject parent){
         switch(config.formation) {
         	case FORMATION.RECT:
+        	parent.AddComponent<Formation>();
         	int width = config.teamRect.x;
         	int height = config.teamRect.y;
         	Vector3 startPos = config.startPos;
         	Vector3 tarPos = config.endPos;
         	bool [,] array = new bool[width,height];
         	Debug.Log("config.number=" + config.number + ", " + width*height);
-        	if (config.number < width * height) {
-	        	for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
-	        		int w = UnityEngine.Random.Range(0, width);
-	        		int h = UnityEngine.Random.Range(0, height);
-	        		array[w, h] = true;
+        	if (config.randomGenerate) {
+	        	if (config.number < width * height) {
+		        	for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
+		        		int w = UnityEngine.Random.Range(0, width);
+		        		int h = UnityEngine.Random.Range(0, height);
+		        		array[w, h] = true;
+		        	}
 	        	}
         	}
 
@@ -241,14 +243,12 @@ public class StartDemo : MonoBehaviour
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
 
-			        Role role;
+			        Role role = new Role(go, x, y, config.health);
 			        if (config.power == 1) {
 			        	go.transform.Rotate(0, 90, 0, Space.Self);
-			        	role = new Role(go, x, y, 1);
 			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
 		        	} else {
 			        	go.transform.Rotate(0, 270, 0, Space.Self);
-			        	role = new Role(go, x, y, 2);
 			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos;
 		        	}
 			        
@@ -261,6 +261,9 @@ public class StartDemo : MonoBehaviour
 			        colRoles.Add(role);
         		}
         	}
+
+	        Formation formation = parent.GetComponent<Formation>();
+	        formation.Init(instances, config);
         	break;
         }
     }
@@ -419,6 +422,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.teamRect = new Vector2Int(25, 25);
     	_configTeamA.startPos = new Vector3(-30,0,0);
     	_configTeamA.endPos = new Vector3(100,0,0);
+    	_configTeamA.health = 1;
     	_configTeamA.moveSpeed = 1.0f;
     	_configTeamA.number = _configTeamA.teamRect.x * _configTeamA.teamRect.y;
 
@@ -428,6 +432,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamB.startPos = Vector3.zero;
     	_configTeamB.endPos = Vector3.zero;
     	_configTeamB.moveSpeed = 0.0f;
+    	_configTeamB.health = 2;
     	_configTeamB.teamRect = new Vector2Int(2, 10);
     	_configTeamB.number = _configTeamB.teamRect.x * _configTeamB.teamRect.y;
     }
@@ -439,7 +444,7 @@ public class StartDemo : MonoBehaviour
 		for (int i = 0; i < transform.childCount; i++) {  
             Destroy(transform.GetChild (i).gameObject);  
         }
-        _configTeamA.move = ROLE_STATE.UNKNOWN;
+        _configTeamA.roleState = ROLE_STATE.UNKNOWN;
         _instancesA.Clear();
         _instancesB.Clear();
         _deadInstances.Clear();
@@ -477,12 +482,11 @@ public class StartDemo : MonoBehaviour
 
 
     private void fixedLoopGame() {
-    	if (_instancesB == null || _instancesB == null) {
-
+    	if (_instancesA == null || _instancesB == null) {
 			Debug.Log("fixedLoopGame=" + _instancesA + ", " + _instancesB);	
     	}
-		Debug.Log("_instancesA=" + _instancesA + ", " + _instancesB);
-		Debug.Log("_instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
+		Debug.Log("fixedLoopGame _instancesA=" + _instancesA + ", " + _instancesB);
+		Debug.Log("fixedLoopGame _instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
 
     	bool role2Dead = false;
 		for (int j2 = _instancesB.Count-1; j2 >= 0; j2--) {

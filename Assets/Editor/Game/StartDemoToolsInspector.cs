@@ -47,13 +47,13 @@ public class StartDemoToolsInspector : Editor
         //     _getStartDemo.setBattleState(0);
 
         EditorGUILayout.BeginHorizontal();
-        // configTeam.move = EditorGUILayout.Toggle("移动：", configTeam.move);
-        ROLE_STATE move = (ROLE_STATE)EditorGUILayout.EnumPopup("动作：", configTeam.move);
+        // configTeam.roleState = EditorGUILayout.Toggle("移动：", configTeam.roleState);
+        ROLE_STATE move = (ROLE_STATE)EditorGUILayout.EnumPopup("动作：", configTeam.roleState);
         // if (GUILayout.Button("Create"))
-        //     InstantiatePrimitive(configTeam.move);
-        if (configTeam.move != move) {
-            configTeam.move = move;
-            switch (configTeam.move) {
+        //     InstantiatePrimitive(configTeam.roleState);
+        if (configTeam.roleState != move) {
+            configTeam.roleState = move;
+            switch (configTeam.roleState) {
                 case ROLE_STATE.IDLE:
                 break;
                 case ROLE_STATE.WALK:
@@ -75,11 +75,15 @@ public class StartDemoToolsInspector : Editor
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
-        configTeam.number = EditorGUILayout.IntField("数量：", configTeam.number);
-        EditorGUILayout.Space();
-        EditorGUILayout.Space();
         configTeam.moveSpeed = EditorGUILayout.FloatField("移速：", configTeam.moveSpeed);
+        EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.BeginHorizontal();
+        configTeam.health = EditorGUILayout.IntField("生命值：", configTeam.health);
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+        configTeam.number = EditorGUILayout.IntField("数量：", configTeam.number);
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
@@ -93,7 +97,12 @@ public class StartDemoToolsInspector : Editor
 
         EditorGUILayout.BeginHorizontal();
         configTeam.formation = (FORMATION)EditorGUILayout.EnumPopup("阵容：", configTeam.formation);
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        configTeam.randomGenerate = EditorGUILayout.Toggle("阵容是否随机生成：", configTeam.randomGenerate);
         EditorGUILayout.EndHorizontal();
+
     }
 
     public override void OnInspectorGUI()
