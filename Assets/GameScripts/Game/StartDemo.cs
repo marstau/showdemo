@@ -207,6 +207,8 @@ public class StartDemo : MonoBehaviour
 	}
 
     void init(List<List<Role>> instances, ConfigTeamParams config, GameObject parent){
+    	if (config == null) return;
+
         switch(config.formation) {
         	case FORMATION.RECT:
         	parent.AddComponent<Formation>();
@@ -395,11 +397,13 @@ public class StartDemo : MonoBehaviour
 	           		case INTERACTIVE_STATE.SELECTEDB:
 	           			changeInteractiveState();
 	           			_instancesB.AddRange(_tmpInstances);
+	           			_tmpFormation.setStartPos(rayPos);
 	           			_tmpInstances = null;
 	           		break;
 	           		case INTERACTIVE_STATE.SELECTEDA:
 	           			changeInteractiveState();
 	           			_instancesA.AddRange(_tmpInstances);
+	           			_tmpFormation.setStartPos(rayPos);
 	           			_tmpInstances = null;
 	           		break;
 	           		case INTERACTIVE_STATE.PLACED:
@@ -513,6 +517,7 @@ public class StartDemo : MonoBehaviour
     private void fixedLoopGame() {
     	if (_instancesA == null || _instancesB == null) {
 			Debug.Log("fixedLoopGame=" + _instancesA + ", " + _instancesB);	
+			return;
     	}
 		Debug.Log("fixedLoopGame _instancesA=" + _instancesA + ", " + _instancesB);
 		Debug.Log("fixedLoopGame _instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);

@@ -17,6 +17,7 @@ public class Formation : MonoBehaviour
     public bool clear;
 
     private ROLE_STATE _curState;
+    private Vector3 _curStartPos;
     public TEAM team {set;get;}
 
     private List<List<Role>> _instances;
@@ -47,6 +48,18 @@ public class Formation : MonoBehaviour
     		changeState();
     	}
 
+    	if (startPos != _curStartPos && _instances != null) {
+    		Vector3 intervalPos = startPos - _curStartPos;
+    		_curStartPos = startPos;
+	    	foreach (List<Role> colRoles in _instances) {
+	    		foreach (Role role in colRoles) {
+	    			GameObject go = role.getGo();
+	    			Transform transform = go.transform;
+	    			transform.localPosition += intervalPos;
+	    		}
+	    	}
+    	}
+
     	if (clear) {
 	        StartDemo startDemo = transform.parent.GetComponent<StartDemo>();
     		Destroy(gameObject);
@@ -57,6 +70,11 @@ public class Formation : MonoBehaviour
     public void updateParams(ConfigTeamParams config) {
     	initConfig(config);
     	_curState = ROLE_STATE.UNKNOWN;
+    }
+
+    public void setStartPos(Vector3 pos) {
+    	startPos = pos;
+    	_curStartPos = startPos;
     }
 
     void changeState() {
