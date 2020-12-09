@@ -61,8 +61,8 @@ public class Role {
 	private GameObject _obj;
 	private ROLE_STATE _state;
 	public int health{set;get;}
-	public int X{set;get;}
-	public int Y{set;get;}
+	public float X{set;get;}
+	public float Y{set;get;}
 	public Role(GameObject obj, int _x, int _y, int health){
 		_obj = obj;
 		X = _x;
@@ -236,16 +236,21 @@ public class StartDemo : MonoBehaviour
 			        go.transform.parent = parent.transform;
 
 			        Role role = new Role(go, x, y, config.health);
-			        if (config.power == 1) {
+			        if (config.team == TEAM.TEAM1) {
 			        	go.transform.Rotate(0, 90, 0, Space.Self);
-			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
 		        	} else {
 			        	go.transform.Rotate(0, 270, 0, Space.Self);
-			        	go.transform.localPosition = new Vector3(x, 0, y) + startPos;
 		        	}
+		        	
+		        	if (config.randomGenerate)
+		        		go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
+		        	else
+		        		go.transform.localPosition = new Vector3(x, 0, y);
+		        	role.X = go.transform.localPosition.x;
+		        	role.Y = go.transform.localPosition.z;
 			        
 		            ModelCustomData customData = go.GetComponent<ModelCustomData>();
-		            customData.setPower(config.power);
+		            customData.setPower((int)config.team);
 		            customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
 		            customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
 		            customData.getAnimator().Play("Idle", 0, 0);
@@ -418,7 +423,6 @@ public class StartDemo : MonoBehaviour
 
     public void InitParams() {
     	_configTeamA = new ConfigTeamParams();
-    	_configTeamA.power = 1;
     	_configTeamA.formation = FORMATION.RECT;
     	_configTeamA.teamRect = new Vector2Int(5, 5);
     	_configTeamA.startPos = new Vector3(-30,0,0);
@@ -432,7 +436,6 @@ public class StartDemo : MonoBehaviour
     	Debug.Log("_curConfigTeamA=" + _curConfigTeamA.moveSpeed + ", _configTeamA=" + _configTeamA.moveSpeed);
 
     	_configTeamB = new ConfigTeamParams();
-    	_configTeamB.power = 2;
     	_configTeamB.formation = FORMATION.RECT;
     	_configTeamB.startPos = Vector3.zero;
     	_configTeamB.endPos = Vector3.zero;
