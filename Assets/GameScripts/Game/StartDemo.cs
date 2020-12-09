@@ -43,19 +43,11 @@ public enum FORMATION {
     ARROW = 3,
 }
 
-public class ConfigTeamParams {
-    public bool show;
-    public ROLE_STATE roleState;
-    public Vector3 startPos;
-    public Vector3 endPos;
-    public float moveSpeed;
-    public int number;
-    public Vector2Int teamRect;
-    public FORMATION formation;
-    public int power;
-    public bool randomGenerate;
-    public int health;
+public enum TEAM {
+	TEAM1 = 1,
+	TEAM2 = 2,
 }
+
 
 public enum GAME_STATE {
 	READY = 1,
@@ -169,7 +161,7 @@ public class StartDemo : MonoBehaviour
     private GameObject _placedGO;
     private INTERACTIVE_STATE _interactiveState;
 
-
+    private ConfigTeamParams _curConfigTeamA;
     private int _rootGoIndex;
 
     // Start is called before the first frame update
@@ -292,14 +284,14 @@ public class StartDemo : MonoBehaviour
     // }
 
     void initTmpTeamB(){
-		GameObject rootGo = new GameObject("Formation" + _rootGoIndex++);
+		GameObject rootGo = new GameObject("FormationB" + _rootGoIndex++);
 		rootGo.transform.parent = this.gameObject.transform;
         _tmpInstances = new List<List<Role>>();
         init(_tmpInstances, _configTeamB, rootGo);
     }
 
     void initTmpTeamA(){
-		GameObject rootGo = new GameObject("Formation" + _rootGoIndex++);
+		GameObject rootGo = new GameObject("FormationA" + _rootGoIndex++);
 		rootGo.transform.parent = this.gameObject.transform;
         _tmpInstances = new List<List<Role>>();
         init(_tmpInstances, _configTeamA, rootGo);
@@ -323,6 +315,19 @@ public class StartDemo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+    	if (_curConfigTeamA != _configTeamA) {
+	    	_curConfigTeamA = GameUtil.CloneModel<ConfigTeamParams>(_configTeamA);
+	    	foreach (Transform child in this.transform) {
+	    		Formation formation = child.gameObject.GetComponent<Formation>();
+	    		if (formation.team == TEAM.TEAM1) {
+	    			formation.updateParams(_configTeamA);
+	    		}
+	    		Debug.Log(child.name + ", " + formation);
+	    	}
+
+    	}
+
     	switch (_gameState) {
     		case GAME_STATE.READY:
     		if (_configTeamA != null && _configTeamA.show) {
@@ -343,10 +348,6 @@ public class StartDemo : MonoBehaviour
     		case GAME_STATE.END:
     		break;
     	}
-    	if (_configTeamA != null)
-        	Debug.Log("_configTeamA=" + _configTeamA.show + ", _configTeamB=" + _configTeamB.number);
-        else
-        	Debug.Log("_configTeamA");
 
         if (_tmpInstances != null) {
         	Vector3 rayPos = GetPlaneInteractivePoint();
@@ -419,12 +420,16 @@ public class StartDemo : MonoBehaviour
     	_configTeamA = new ConfigTeamParams();
     	_configTeamA.power = 1;
     	_configTeamA.formation = FORMATION.RECT;
-    	_configTeamA.teamRect = new Vector2Int(25, 25);
+    	_configTeamA.teamRect = new Vector2Int(5, 5);
     	_configTeamA.startPos = new Vector3(-30,0,0);
     	_configTeamA.endPos = new Vector3(100,0,0);
     	_configTeamA.health = 1;
     	_configTeamA.moveSpeed = 1.0f;
     	_configTeamA.number = _configTeamA.teamRect.x * _configTeamA.teamRect.y;
+    	_configTeamA.team = TEAM.TEAM1;
+
+    	_curConfigTeamA = GameUtil.CloneModel<ConfigTeamParams>(_configTeamA);
+    	Debug.Log("_curConfigTeamA=" + _curConfigTeamA.moveSpeed + ", _configTeamA=" + _configTeamA.moveSpeed);
 
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.power = 2;
@@ -435,6 +440,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamB.health = 2;
     	_configTeamB.teamRect = new Vector2Int(2, 10);
     	_configTeamB.number = _configTeamB.teamRect.x * _configTeamB.teamRect.y;
+    	_configTeamB.team = TEAM.TEAM2;
     }
 
     public void resetGame(){

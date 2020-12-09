@@ -16,6 +16,7 @@ public class Formation : MonoBehaviour
     public Vector3 endPos;
 
     private ROLE_STATE _curState;
+    public TEAM team {set;get;}
 
     private List<List<Role>> _instances;
     // Start is called before the first frame update
@@ -26,11 +27,16 @@ public class Formation : MonoBehaviour
 
     public void Init(List<List<Role>> instances, ConfigTeamParams config) {
     	_instances = instances;
+    	initConfig(config);
+    }
+
+    void initConfig(ConfigTeamParams config) {
     	show = config.show;
     	moveSpeed = config.moveSpeed;
     	roleState = config.roleState;
     	startPos = config.startPos;
     	endPos = config.endPos;
+    	team = config.team;
     }
 
     // Update is called once per frame
@@ -39,6 +45,11 @@ public class Formation : MonoBehaviour
     	if (_curState != roleState) {
     		changeState();
     	}
+    }
+
+    public void updateParams(ConfigTeamParams config) {
+    	initConfig(config);
+    	_curState = ROLE_STATE.UNKNOWN;
     }
 
     void changeState() {
