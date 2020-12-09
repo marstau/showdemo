@@ -162,6 +162,7 @@ public class StartDemo : MonoBehaviour
     private INTERACTIVE_STATE _interactiveState;
 
     private ConfigTeamParams _curConfigTeamA;
+    private ConfigTeamParams _curConfigTeamB;
     private int _rootGoIndex;
 
     // Start is called before the first frame update
@@ -241,7 +242,7 @@ public class StartDemo : MonoBehaviour
 		        	} else {
 			        	go.transform.Rotate(0, 270, 0, Space.Self);
 		        	}
-		        	
+
 		        	if (config.randomGenerate)
 		        		go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
 		        	else
@@ -330,7 +331,17 @@ public class StartDemo : MonoBehaviour
 	    		}
 	    		Debug.Log(child.name + ", " + formation);
 	    	}
+    	}
 
+    	if (_curConfigTeamB != _configTeamB) {
+	    	_curConfigTeamB = GameUtil.CloneModel<ConfigTeamParams>(_configTeamB);
+	    	foreach (Transform child in this.transform) {
+	    		Formation formation = child.gameObject.GetComponent<Formation>();
+	    		if (formation.team == TEAM.TEAM2) {
+	    			formation.updateParams(_configTeamB);
+	    		}
+	    		Debug.Log(child.name + ", " + formation);
+	    	}
     	}
 
     	switch (_gameState) {
@@ -433,7 +444,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.team = TEAM.TEAM1;
 
     	_curConfigTeamA = GameUtil.CloneModel<ConfigTeamParams>(_configTeamA);
-    	Debug.Log("_curConfigTeamA=" + _curConfigTeamA.moveSpeed + ", _configTeamA=" + _configTeamA.moveSpeed);
+    	// Debug.Log("_curConfigTeamA=" + _curConfigTeamA.moveSpeed + ", _configTeamA=" + _configTeamA.moveSpeed);
 
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.formation = FORMATION.RECT;
@@ -444,6 +455,8 @@ public class StartDemo : MonoBehaviour
     	_configTeamB.teamRect = new Vector2Int(2, 10);
     	_configTeamB.number = _configTeamB.teamRect.x * _configTeamB.teamRect.y;
     	_configTeamB.team = TEAM.TEAM2;
+
+    	_curConfigTeamB = GameUtil.CloneModel<ConfigTeamParams>(_configTeamB);
     }
 
     public void resetGame(){
@@ -467,25 +480,25 @@ public class StartDemo : MonoBehaviour
     }
 
     public void Move() {
-		Debug.Log("_instancesA=" + _instancesA);
-		Debug.Log("_instancesA size=" + _instancesA.Count);
-		float dis = (_configTeamA.startPos - _configTeamA.endPos).magnitude;
-		float time = 1000;
-		if (_configTeamA.moveSpeed > 0) {
-			time = dis/_configTeamA.moveSpeed;
-		}
-    	foreach (List<Role> colRoles in _instancesA) {
-    		foreach (Role role in colRoles) {
-		        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
-	    			GameObject go = role.getGo();
-	    			Debug.Log("move direction=" + (_configTeamA.endPos - _configTeamA.startPos) );
-				    go.transform.DOLocalMove(_configTeamA.endPos - _configTeamA.startPos, time);
-			        ModelCustomData customData = go.GetComponent<ModelCustomData>();
-			        customData.getAnimator().Play("Move", 0, 0);
-					}, UnityEngine.Random.Range(0.0f, 1.0f))
-		        );
-    		}
-    	}
+		// Debug.Log("_instancesA=" + _instancesA);
+		// Debug.Log("_instancesA size=" + _instancesA.Count);
+		// float dis = (_configTeamA.startPos - _configTeamA.endPos).magnitude;
+		// float time = 1000;
+		// if (_configTeamA.moveSpeed > 0) {
+		// 	time = dis/_configTeamA.moveSpeed;
+		// }
+  //   	foreach (List<Role> colRoles in _instancesA) {
+  //   		foreach (Role role in colRoles) {
+		//         StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
+	 //    			GameObject go = role.getGo();
+	 //    			Debug.Log("move direction=" + (_configTeamA.endPos - _configTeamA.startPos) );
+		// 		    go.transform.DOLocalMove(_configTeamA.endPos - _configTeamA.startPos, time);
+		// 	        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+		// 	        customData.getAnimator().Play("Move", 0, 0);
+		// 			}, UnityEngine.Random.Range(0.0f, 1.0f))
+		//         );
+  //   		}
+  //   	}
 
     }
 
