@@ -8,6 +8,7 @@ using System;
 /*
 阴影
 其他阵容
+碰撞优化
 */
 public enum ROLE_STATE
 {
