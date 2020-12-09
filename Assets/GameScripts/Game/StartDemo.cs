@@ -92,6 +92,8 @@ public class Role {
 
 		// 绘制抛物线
 		Transform transform = _obj.transform;
+        transform.DOKill();
+        
 		Vector3 localPosition = transform.localPosition;
         ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
         customData.getAnimator().Play("Die", 0, 0);
@@ -154,6 +156,7 @@ public class StartDemo : MonoBehaviour
     private List<List<Role>> _instancesB;
 
     private List<List<Role>> _tmpInstances;
+    private Formation _tmpFormation;
 
     private List<Role> _deadInstances;
 
@@ -223,9 +226,9 @@ public class StartDemo : MonoBehaviour
 	        	}
         	}
 
+    		List<Role> colRoles = new List<Role>();
+    		instances.Add(colRoles);
         	for (int x = 0; x < width; x++) {
-        		List<Role> colRoles = new List<Role>();
-        		instances.Add(colRoles);
         		for (int y = 0; y < height; y++) {
         			if (array[x, y]) {
 	        			Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
@@ -261,7 +264,8 @@ public class StartDemo : MonoBehaviour
         	}
 
 	        Formation formation = parent.GetComponent<Formation>();
-	        formation.Init(instances, config);
+	        formation.Init(instances,config);
+	        _tmpFormation = formation;
         	break;
         }
     }
