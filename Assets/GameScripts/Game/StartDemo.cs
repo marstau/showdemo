@@ -228,9 +228,6 @@ public class StartDemo : MonoBehaviour
         bool[,] canGenerate = new bool[width, height];
         switch(config.formation) {
         	case FORMATION.RECT: {
-            	parent.AddComponent<Formation>();
-            	Vector3 startPos = config.startPos;
-            	Vector3 tarPos = config.endPos;
             	Debug.Log("config.number=" + config.number + ", " + width*height);
             	if (config.randomGenerate) {
     	        	if (config.number < width * height) {
@@ -251,9 +248,6 @@ public class StartDemo : MonoBehaviour
             } break;
 
             case FORMATION.CIRCLE: {
-                parent.AddComponent<Formation>();
-                Vector3 startPos = config.startPos;
-                Vector3 tarPos = config.endPos;
                 Debug.Log("config.number=" + config.number + ", " + width*height);
                 if (config.randomGenerate) {
                     if (config.number < width * height) {
@@ -277,9 +271,6 @@ public class StartDemo : MonoBehaviour
 
 
             case FORMATION.TRIANGLE: {
-                parent.AddComponent<Formation>();
-                Vector3 startPos = config.startPos;
-                Vector3 tarPos = config.endPos;
                 Debug.Log("config.number=" + config.number + ", " + width*height);
                 if (config.randomGenerate) {
                     if (config.number < width * height) {
@@ -345,6 +336,7 @@ public class StartDemo : MonoBehaviour
             }
         }
 
+        parent.AddComponent<Formation>();
         Formation formation = parent.GetComponent<Formation>();
         formation.Init(instances,config);
         _tmpFormation = formation;
