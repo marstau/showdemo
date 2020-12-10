@@ -9,7 +9,6 @@ using UnityEditor;
 
 /*
 阴影
-其他阵容
 碰撞优化
 BUG:
 生成数量有问题
@@ -297,8 +296,10 @@ public class StartDemo : MonoBehaviour
 
         List<Role> colRoles = new List<Role>();
         instances.Add(colRoles);
+        int count = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
+                if (count >= config.number) break;
                 if (array[x, y]) {
                     Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
                     continue;
@@ -307,6 +308,7 @@ public class StartDemo : MonoBehaviour
                 if (!canGenerate[x, y]) {
                     continue;
                 }
+
                 GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
                 Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
                 go = Instantiate(go);
@@ -333,6 +335,7 @@ public class StartDemo : MonoBehaviour
                 customData.getAnimator().Play("Idle", 0, 0);
                 // customData.getAnimator().SetLookAtPosition(tarPos);
                 colRoles.Add(role);
+                count++;
             }
         }
 
