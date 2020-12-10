@@ -19,6 +19,7 @@ public class ConfigTeamParams {
     public bool randomGenerate;
     public int health;
     public TEAM team;
+    public String modelName;
 
 	public static bool operator == (ConfigTeamParams a, ConfigTeamParams b)
 	{	

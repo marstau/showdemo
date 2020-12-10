@@ -247,8 +247,8 @@ public class StartDemo : MonoBehaviour
 	        			Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
         				continue;
         			}
-        			// Debug.Log("create object " + x + ", " + y);
-			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
+			        GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
+        			Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
 
@@ -461,6 +461,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamA.moveSpeed = 1.0f;
     	_configTeamA.number = _configTeamA.teamRect.x * _configTeamA.teamRect.y;
     	_configTeamA.team = TEAM.TEAM1;
+    	_configTeamA.modelName = "model1001001";
 
     	_curConfigTeamA = GameUtil.CloneModel<ConfigTeamParams>(_configTeamA);
     	// Debug.Log("_curConfigTeamA=" + _curConfigTeamA.moveSpeed + ", _configTeamA=" + _configTeamA.moveSpeed);
@@ -474,6 +475,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamB.teamRect = new Vector2Int(2, 10);
     	_configTeamB.number = _configTeamB.teamRect.x * _configTeamB.teamRect.y;
     	_configTeamB.team = TEAM.TEAM2;
+    	_configTeamB.modelName = "model1001001";
 
     	_curConfigTeamB = GameUtil.CloneModel<ConfigTeamParams>(_configTeamB);
     }

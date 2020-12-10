@@ -96,6 +96,10 @@ public class StartDemoToolsInspector : Editor
         EditorGUILayout.EndHorizontal();
 
         EditorGUILayout.BeginHorizontal();
+        configTeam.modelName = EditorGUILayout.TextField("模型名：", configTeam.modelName);
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
         configTeam.formation = (FORMATION)EditorGUILayout.EnumPopup("阵容：", configTeam.formation);
         EditorGUILayout.Space();
         EditorGUILayout.Space();
