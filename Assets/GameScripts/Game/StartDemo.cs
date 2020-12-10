@@ -59,7 +59,7 @@ public enum GAME_STATE {
 
 public class Role {
 	private GameObject _obj;
-	private ROLE_STATE _state;
+	public ROLE_STATE state{set;get;}
 	public int health{set;get;}
 	public float X{set;get;}
 	public float Y{set;get;}
@@ -73,11 +73,11 @@ public class Role {
 	public GameObject getGo() { return _obj; }
 
 	public void move() {
-		_state = ROLE_STATE.WALK;
+		state = ROLE_STATE.WALK;
 	}
 
 	public void die() {
-		_state = ROLE_STATE.DIE;
+		state = ROLE_STATE.DIE;
 		Transform transform = _obj.transform;
         ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
         transform.DOKill();

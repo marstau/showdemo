@@ -17,6 +17,8 @@ public class Formation : MonoBehaviour
     public bool clear;
 
     private ROLE_STATE _curState;
+    private bool _curShow;
+    private float _curMoveSpeed;
     private Vector3 _curStartPos;
     public TEAM team {set;get;}
 
@@ -24,12 +26,13 @@ public class Formation : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        Debug.Log("Formation Start");
     }
 
     public void Init(List<List<Role>> instances, ConfigTeamParams config) {
     	_instances = instances;
     	initConfig(config);
+    	show = true;
     }
 
     void initConfig(ConfigTeamParams config) {
@@ -44,8 +47,18 @@ public class Formation : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+    	bool updateTeam = false;
     	if (_curState != roleState) {
     		changeState();
+    		updateTeam = true;
+    	}
+
+    	if (moveSpeed != _curMoveSpeed) {
+    		updateSpeedInfo();
+    	}
+
+    	if (_curShow != show) {
+    		updateShowInfo();
     	}
 
     	if (startPos != _curStartPos && _instances != null) {
@@ -59,6 +72,9 @@ public class Formation : MonoBehaviour
 	    		}
 	    	}
     	}
+
+    	if (updateTeam)
+    		_updateTeamInfo();
 
     	if (clear) {
 	        StartDemo startDemo = transform.parent.GetComponent<StartDemo>();
@@ -77,11 +93,55 @@ public class Formation : MonoBehaviour
     	_curStartPos = startPos;
     }
 
-    void changeState() {
-    	Debug.Log("Formation changeState=" + roleState);
+    void updateSpeedInfo() {
+    	Debug.Log("Formation updateSpeedInfo=" + moveSpeed + ", _curState=" + _curState);
+    	_curMoveSpeed = moveSpeed;
+
+    	if (_curState == ROLE_STATE.WALK) {
+			float dis = (startPos - endPos).magnitude;
+			float time = 1000;
+			if (_curMoveSpeed > 0) {
+				time = dis/_curMoveSpeed;
+			}
+	    	foreach (List<Role> colRoles in _instances) {
+	    		foreach (Role role in colRoles) {
+			        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
+		    			GameObject go = role.getGo();
+		    			Transform transform = go.transform;
+		    			if (role.state == ROLE_STATE.WALK) {
+			    			Debug.Log("move direction=" + (endPos - startPos));
+			    			transform.DOKill();
+						    transform.DOLocalMove(endPos, time);
+		    			}
+						}, UnityEngine.Random.Range(0.0f, 1.0f))
+			        );
+	    		}
+	    	}
+    	}
+
+    }
+
+
+    void updateShowInfo() {
+    	Debug.Log("Formation updateShowInfo=" + show);
+    	_curShow = show;
+
+    	foreach (List<Role> colRoles in _instances) {
+    		foreach (Role role in colRoles) {
+	    		GameObject go = role.getGo();
+	    		go.SetActive(_curShow);
+
+	            ModelCustomData customData = go.GetComponent<ModelCustomData>();
+	            customData.setPower((int)team);
+	            customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+	            customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+    		}
+    	}
+    }
+
+    void _updateTeamInfo() {
     	if (_instances == null) return;
-		_curState = roleState;
-    	switch (roleState) {
+    	switch (_curState) {
     		case ROLE_STATE.IDLE:
 				Debug.Log("_instances=" + _instances);
 				Debug.Log("_instances size=" + _instances.Count);
@@ -117,8 +177,8 @@ public class Formation : MonoBehaviour
 				Debug.Log("_instances size=" + _instances.Count);
 				float dis = (startPos - endPos).magnitude;
 				float time = 1000;
-				if (moveSpeed > 0) {
-					time = dis/moveSpeed;
+				if (_curMoveSpeed > 0) {
+					time = dis/_curMoveSpeed;
 				}
 		    	foreach (List<Role> colRoles in _instances) {
 		    		foreach (Role role in colRoles) {
@@ -127,7 +187,7 @@ public class Formation : MonoBehaviour
 			    			Transform transform = go.transform;
 			    			Debug.Log("move direction=" + (endPos - startPos));
 			    			transform.DOKill();
-						    transform.DOLocalMove(endPos - startPos, time);
+						    transform.DOLocalMove(endPos, time);
 					        ModelCustomData customData = go.GetComponent<ModelCustomData>();
 					        customData.getAnimator().Play("Move", 0, 0);
 							}, UnityEngine.Random.Range(0.0f, 1.0f))
@@ -136,6 +196,9 @@ public class Formation : MonoBehaviour
 		    	}
     		break;
     	}
-
+    }
+    void changeState() {
+    	Debug.Log("Formation changeState=" + roleState);
+		_curState = roleState;
     }
 }
