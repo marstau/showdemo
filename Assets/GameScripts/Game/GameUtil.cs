@@ -40,6 +40,11 @@ public class GameUtil {
         }
         return (T)retval;
     }
-
+    public static double GetDistance(float A_x,float A_y,float B_x,float B_y)
+    {
+        float x=System.Math.Abs(B_x   -   A_x );
+        float y=System.Math.Abs(B_y   -   A_y );
+        return Math.Sqrt(x*x+y*y);
+    }
 
 }
