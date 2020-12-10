@@ -13,13 +13,13 @@ using UnityEditor;
 碰撞优化
 */
 public enum ROLE_STATE {
+    IDLE = 0,
+    ATTACK = 1,
+    WALK = 2,
+    DIE = 3,
+    JUMP_DIE = 4,
+    PLACING = 5,
     UNKNOWN = 0,
-    IDLE = 1,
-    ATTACK = 2,
-    WALK = 3,
-    DIE = 4,
-    JUMP_DIE = 5,
-    PLACING = 6,
 }
 
 
@@ -63,10 +63,13 @@ public class Role {
 	public int health{set;get;}
 	public float X{set;get;}
 	public float Y{set;get;}
+	public float moveSpeed{set;get;}
+	public TEAM team{set;get;}
 	public Role(GameObject obj, int _x, int _y, int health){
 		_obj = obj;
 		X = _x;
 		Y = _y;
+		moveSpeed = 0f;
 		this.health = health;
 	}
 
@@ -76,18 +79,26 @@ public class Role {
 		state = ROLE_STATE.WALK;
 	}
 
-	public void die() {
-		state = ROLE_STATE.DIE;
-		Transform transform = _obj.transform;
-        ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
-        transform.DOKill();
-        customData.getAnimator().Play("Die", 0, 0);
+	public void die(ROLE_STATE targetState) {
+		if (targetState == ROLE_STATE.WALK) {
+			jumpDie();
+		} else {
+			state = ROLE_STATE.DIE;
+			Transform transform = _obj.transform;
+	        ModelCustomData customData = _obj.GetComponent<ModelCustomData>();
+	        transform.DOKill();
+	        customData.getAnimator().Play("Die", 0, 0);
+		}
 	}
 
-	public void jumpDie() {
+	private void jumpDie() {
+		state = ROLE_STATE.DIE;
 		int resolution = 20;
 		float height = 0.5f;
+		// direction
 		float x = 3f;
+		if (team == TEAM.TEAM1)
+			x = -3f;
 		float time = 0.4f;
 
 		// 绘制抛物线
@@ -236,7 +247,7 @@ public class StartDemo : MonoBehaviour
 	        			Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
         				continue;
         			}
-        			Debug.Log("create object " + x + ", " + y);
+        			// Debug.Log("create object " + x + ", " + y);
 			        GameObject go = (GameObject)Resources.Load("Model/model1001001/model1001001");
 			        go = Instantiate(go);
 			        go.transform.parent = parent.transform;
@@ -457,7 +468,7 @@ public class StartDemo : MonoBehaviour
     	_configTeamB = new ConfigTeamParams();
     	_configTeamB.formation = FORMATION.RECT;
     	_configTeamB.startPos = Vector3.zero;
-    	_configTeamB.endPos = Vector3.zero;
+    	_configTeamB.endPos = new Vector3(-100,0,0);
     	_configTeamB.moveSpeed = 0.0f;
     	_configTeamB.health = 2;
     	_configTeamB.teamRect = new Vector2Int(2, 10);
@@ -523,6 +534,7 @@ public class StartDemo : MonoBehaviour
 		Debug.Log("fixedLoopGame _instancesA size=" + _instancesA.Count + ", " + _instancesB.Count);
 
     	bool role2Dead = false;
+    	ROLE_STATE targetRoleState = ROLE_STATE.UNKNOWN;
 		for (int j2 = _instancesB.Count-1; j2 >= 0; j2--) {
 			List<Role> roleList2 = _instancesB[j2];
 			for (int k2 = roleList2.Count - 1; k2 >= 0; k2--) {
@@ -540,6 +552,10 @@ public class StartDemo : MonoBehaviour
 					for (int k = roleList.Count - 1; k >= 0; k--) {
 						Role role = roleList[k];
 		    			GameObject go = role.getGo();
+		    			if (go == null) {
+		    				roleList.RemoveAt(k);
+		    				continue;
+		    			}
 		    			Transform transform = go.transform;
 						if (role.isCollisionBox(transform2.position)) {
 							Debug.Log("Collision=" + j + "," + k + ", A position=" + transform.position);
@@ -547,16 +563,18 @@ public class StartDemo : MonoBehaviour
 							// Destroy(go);
 							_deadInstances.Add(role);
 
+							if (role2.health <= 0) {
+								role2Dead = true;
+								targetRoleState = role.state;
+							}
 							StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
 								_deadInstances.Remove(role);
             					Destroy(role.getGo());
 							}, 3.0f));
-							role.die();
+							role.die(role2.state);
 							roleList.RemoveAt(k);
-							if (role2.health <= 0) {
-								role2Dead = true;
-							 	break;
-							}
+
+							if (role2Dead) break;
 						}
 					}
 					if (role2Dead) break;
@@ -570,7 +588,7 @@ public class StartDemo : MonoBehaviour
 						_deadInstances.Remove(role2);
             			Destroy(role2.getGo());
 					}, 3.0f));
-					role2.jumpDie();
+					role2.die(targetRoleState);
 					roleList2.RemoveAt(k2);
 				}
 			}

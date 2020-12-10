@@ -53,28 +53,27 @@ public class Formation : MonoBehaviour
     		updateTeam = true;
     	}
 
-    	if (moveSpeed != _curMoveSpeed) {
-    		updateSpeedInfo();
-    	}
-
     	if (_curShow != show) {
     		updateShowInfo();
     	}
 
     	if (startPos != _curStartPos && _instances != null) {
-    		Vector3 intervalPos = startPos - _curStartPos;
     		_curStartPos = startPos;
 	    	foreach (List<Role> colRoles in _instances) {
 	    		foreach (Role role in colRoles) {
 	    			GameObject go = role.getGo();
 	    			Transform transform = go.transform;
-	    			transform.localPosition += intervalPos;
+	    			transform.localPosition = _curStartPos + new Vector3(role.X, 0, role.Y);
 	    		}
 	    	}
     	}
 
     	if (updateTeam)
     		_updateTeamInfo();
+
+    	if (moveSpeed != _curMoveSpeed) {
+    		updateSpeedInfo();
+    	}
 
     	if (clear) {
 	        StartDemo startDemo = transform.parent.GetComponent<StartDemo>();
@@ -110,8 +109,9 @@ public class Formation : MonoBehaviour
 		    			Transform transform = go.transform;
 		    			if (role.state == ROLE_STATE.WALK) {
 			    			Debug.Log("move direction=" + (endPos - startPos));
+	    					role.moveSpeed = _curMoveSpeed;
 			    			transform.DOKill();
-						    transform.DOLocalMove(endPos, time);
+						    transform.DOLocalMove(endPos + new Vector3(role.X, 0, role.Y), time);
 		    			}
 						}, UnityEngine.Random.Range(0.0f, 1.0f))
 			        );
@@ -130,6 +130,8 @@ public class Formation : MonoBehaviour
     		foreach (Role role in colRoles) {
 	    		GameObject go = role.getGo();
 	    		go.SetActive(_curShow);
+	    		role.moveSpeed = _curMoveSpeed;
+	    		role.team = team;
 
 	            ModelCustomData customData = go.GetComponent<ModelCustomData>();
 	            customData.setPower((int)team);
@@ -147,11 +149,14 @@ public class Formation : MonoBehaviour
 				Debug.Log("_instances size=" + _instances.Count);
 		    	foreach (List<Role> colRoles in _instances) {
 		    		foreach (Role role in colRoles) {
-		    			GameObject go = role.getGo();
-		    			Transform transform = go.transform;
-		    			transform.DOKill();
-				        ModelCustomData customData = go.GetComponent<ModelCustomData>();
-				        customData.getAnimator().Play("Idle");
+		    			if (role.state != ROLE_STATE.DIE) {
+			    			GameObject go = role.getGo();
+				    		role.state = ROLE_STATE.IDLE;
+			    			Transform transform = go.transform;
+			    			transform.DOKill();
+					        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+					        customData.getAnimator().Play("Idle");
+		    			}
 		    		}
 		    	}
     		break;
@@ -161,12 +166,15 @@ public class Formation : MonoBehaviour
 		    	foreach (List<Role> colRoles in _instances) {
 		    		foreach (Role role in colRoles) {
 				        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
-			    			GameObject go = role.getGo();
-			    			Transform transform = go.transform;
-			    			transform.DOKill();
-					        ModelCustomData customData = go.GetComponent<ModelCustomData>();
-					        Animator animator = customData.getAnimator();
-					        animator.Play("Attack0", 0, 0);
+			    			if (role.state != ROLE_STATE.DIE) {
+				    			GameObject go = role.getGo();
+				    			Transform transform = go.transform;
+				    			transform.DOKill();
+						        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+						        Animator animator = customData.getAnimator();
+						        animator.Play("Attack0", 0, 0);
+				    			role.state = ROLE_STATE.ATTACK;
+			    			}
 							}, UnityEngine.Random.Range(0.0f, 1.0f))
 				        );
 		    		}
@@ -183,13 +191,16 @@ public class Formation : MonoBehaviour
 		    	foreach (List<Role> colRoles in _instances) {
 		    		foreach (Role role in colRoles) {
 				        StartCoroutine(DelayToInvoke.DelayToInvokeDo(() => {
-			    			GameObject go = role.getGo();
-			    			Transform transform = go.transform;
-			    			Debug.Log("move direction=" + (endPos - startPos));
-			    			transform.DOKill();
-						    transform.DOLocalMove(endPos, time);
-					        ModelCustomData customData = go.GetComponent<ModelCustomData>();
-					        customData.getAnimator().Play("Move", 0, 0);
+			    			if (role.state != ROLE_STATE.DIE) {
+				    			GameObject go = role.getGo();
+				    			Transform transform = go.transform;
+				    			role.state = ROLE_STATE.WALK;
+				    			Debug.Log("move direction=" + (endPos - startPos));
+				    			transform.DOKill();
+							    transform.DOLocalMove(endPos, time);
+						        ModelCustomData customData = go.GetComponent<ModelCustomData>();
+						        customData.getAnimator().Play("Move", 0, 0);
+			    			}
 							}, UnityEngine.Random.Range(0.0f, 1.0f))
 				        );
 		    		}
