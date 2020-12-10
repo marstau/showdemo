@@ -222,223 +222,132 @@ public class StartDemo : MonoBehaviour
     void init(List<List<Role>> instances, ConfigTeamParams config, GameObject parent){
     	if (config == null) return;
 
+        int width = config.teamRect.x;
+        int height = config.teamRect.y;
+        bool[,] array = new bool[width,height];
+        bool[,] canGenerate = new bool[width, height];
         switch(config.formation) {
         	case FORMATION.RECT: {
-        	parent.AddComponent<Formation>();
-        	int width = config.teamRect.x;
-        	int height = config.teamRect.y;
-        	Vector3 startPos = config.startPos;
-        	Vector3 tarPos = config.endPos;
-        	bool [,] array = new bool[width,height];
-        	Debug.Log("config.number=" + config.number + ", " + width*height);
-        	if (config.randomGenerate) {
-	        	if (config.number < width * height) {
-		        	for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
-		        		int w = UnityEngine.Random.Range(0, width);
-		        		int h = UnityEngine.Random.Range(0, height);
-		        		array[w, h] = true;
-		        	}
-	        	}
-        	}
+            	parent.AddComponent<Formation>();
+            	Vector3 startPos = config.startPos;
+            	Vector3 tarPos = config.endPos;
+            	Debug.Log("config.number=" + config.number + ", " + width*height);
+            	if (config.randomGenerate) {
+    	        	if (config.number < width * height) {
+    		        	for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
+    		        		int w = UnityEngine.Random.Range(0, width);
+    		        		int h = UnityEngine.Random.Range(0, height);
+    		        		array[w, h] = true;
+    		        	}
+    	        	}
+            	}
 
-    		List<Role> colRoles = new List<Role>();
-    		instances.Add(colRoles);
-        	for (int x = 0; x < width; x++) {
-        		for (int y = 0; y < height; y++) {
-        			if (array[x, y]) {
-	        			Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
-        				continue;
-        			}
-			        GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
-        			Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
-			        go = Instantiate(go);
-			        go.transform.parent = parent.transform;
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        canGenerate[x, y] = true;
+                    }
+                }
 
-			        Role role = new Role(go, x, y, config.health);
-			        if (config.team == TEAM.TEAM1) {
-			        	go.transform.Rotate(0, 90, 0, Space.Self);
-		        	} else {
-			        	go.transform.Rotate(0, 270, 0, Space.Self);
-		        	}
-
-		        	if (config.randomGenerate)
-		        		go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
-		        	else
-		        		go.transform.localPosition = new Vector3(x, 0, y);
-		        	role.X = go.transform.localPosition.x;
-		        	role.Y = go.transform.localPosition.z;
-			        
-		            ModelCustomData customData = go.GetComponent<ModelCustomData>();
-		            customData.setPower((int)config.team);
-		            customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-		            customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-		            customData.getAnimator().Play("Idle", 0, 0);
-			        // customData.getAnimator().SetLookAtPosition(tarPos);
-			        colRoles.Add(role);
-        		}
-        	}
-
-	        Formation formation = parent.GetComponent<Formation>();
-	        formation.Init(instances,config);
-	        _tmpFormation = formation;
             } break;
 
             case FORMATION.CIRCLE: {
-            parent.AddComponent<Formation>();
-            int width = config.teamRect.x;
-            int height = config.teamRect.y;
-            Vector3 startPos = config.startPos;
-            Vector3 tarPos = config.endPos;
-            bool [,] array = new bool[width,height];
-            Debug.Log("config.number=" + config.number + ", " + width*height);
-            if (config.randomGenerate) {
-                if (config.number < width * height) {
-                    for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
-                        int w = UnityEngine.Random.Range(0, width);
-                        int h = UnityEngine.Random.Range(0, height);
-                        array[w, h] = true;
+                parent.AddComponent<Formation>();
+                Vector3 startPos = config.startPos;
+                Vector3 tarPos = config.endPos;
+                Debug.Log("config.number=" + config.number + ", " + width*height);
+                if (config.randomGenerate) {
+                    if (config.number < width * height) {
+                        for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
+                            int w = UnityEngine.Random.Range(0, width);
+                            int h = UnityEngine.Random.Range(0, height);
+                            array[w, h] = true;
+                        }
                     }
                 }
-            }
 
-            bool [,] canGenerate = new bool[width, height];
-            int raduis = Math.Min(width, height)/2;
-            Vector2 centorPoint = new Vector2(width/2f, height/2f);
-            
-
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    canGenerate[x, y] = GameUtil.GetDistance(centorPoint.x, centorPoint.y, x, y) <= raduis;
+                int raduis = Math.Min(width, height)/2;
+                Vector2 centorPoint = new Vector2(width/2f, height/2f);
+                
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        canGenerate[x, y] = GameUtil.GetDistance(centorPoint.x, centorPoint.y, x, y) <= raduis;
+                    }
                 }
-            }
-
-            List<Role> colRoles = new List<Role>();
-            instances.Add(colRoles);
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if (array[x, y]) {
-                        Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
-                        continue;
-                    }
-
-                    if (!canGenerate[x, y]) {
-                        continue;
-                    }
-                    GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
-                    Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
-                    go = Instantiate(go);
-                    go.transform.parent = parent.transform;
-
-                    Role role = new Role(go, x, y, config.health);
-                    if (config.team == TEAM.TEAM1) {
-                        go.transform.Rotate(0, 90, 0, Space.Self);
-                    } else {
-                        go.transform.Rotate(0, 270, 0, Space.Self);
-                    }
-
-                    if (config.randomGenerate)
-                        go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
-                    else
-                        go.transform.localPosition = new Vector3(x, 0, y);
-                    role.X = go.transform.localPosition.x;
-                    role.Y = go.transform.localPosition.z;
-                    
-                    ModelCustomData customData = go.GetComponent<ModelCustomData>();
-                    customData.setPower((int)config.team);
-                    customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-                    customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-                    customData.getAnimator().Play("Idle", 0, 0);
-                    // customData.getAnimator().SetLookAtPosition(tarPos);
-                    colRoles.Add(role);
-                }
-            }
-
-            Formation formation = parent.GetComponent<Formation>();
-            formation.Init(instances,config);
-            _tmpFormation = formation;
             } break;
 
 
             case FORMATION.TRIANGLE: {
-            parent.AddComponent<Formation>();
-            int width = config.teamRect.x;
-            int height = config.teamRect.y;
-            Vector3 startPos = config.startPos;
-            Vector3 tarPos = config.endPos;
-            bool [,] array = new bool[width,height];
-            Debug.Log("config.number=" + config.number + ", " + width*height);
-            if (config.randomGenerate) {
-                if (config.number < width * height) {
-                    for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
-                        int w = UnityEngine.Random.Range(0, width);
-                        int h = UnityEngine.Random.Range(0, height);
-                        array[w, h] = true;
+                parent.AddComponent<Formation>();
+                Vector3 startPos = config.startPos;
+                Vector3 tarPos = config.endPos;
+                Debug.Log("config.number=" + config.number + ", " + width*height);
+                if (config.randomGenerate) {
+                    if (config.number < width * height) {
+                        for (int ignoreIdx = config.number; ignoreIdx < width*height; ignoreIdx++) {
+                            int w = UnityEngine.Random.Range(0, width);
+                            int h = UnityEngine.Random.Range(0, height);
+                            array[w, h] = true;
+                        }
                     }
                 }
-            }
 
-            bool [,] canGenerate = new bool[width, height];
-            float slope1 = height/(2f*width);
-            float slope2 = -height/(2f*width);
-
-            float constY1 = height/2f;
-            float constY2 = height/2f;
-
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if (config.team == TEAM.TEAM2)
-                        canGenerate[x, y] = (y >= slope1*x + 0) && (y <= slope2*x + height);
-                    else
-                        canGenerate[x, y] = (y <= slope1*x + height/2f) && (y >= slope2*x + height/2f);
+                float slope1 = height/(2f*width);
+                float slope2 = -height/(2f*width);
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        if (config.team == TEAM.TEAM2)
+                            canGenerate[x, y] = (y >= slope1*x + 0) && (y <= slope2*x + height);
+                        else
+                            canGenerate[x, y] = (y <= slope1*x + height/2f) && (y >= slope2*x + height/2f);
+                    }
                 }
-            }
-
-            List<Role> colRoles = new List<Role>();
-            instances.Add(colRoles);
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if (array[x, y]) {
-                        Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
-                        continue;
-                    }
-
-                    if (!canGenerate[x, y]) {
-                        continue;
-                    }
-                    GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
-                    Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
-                    go = Instantiate(go);
-                    go.transform.parent = parent.transform;
-
-                    Role role = new Role(go, x, y, config.health);
-                    if (config.team == TEAM.TEAM1) {
-                        go.transform.Rotate(0, 90, 0, Space.Self);
-                    } else {
-                        go.transform.Rotate(0, 270, 0, Space.Self);
-                    }
-
-                    if (config.randomGenerate)
-                        go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
-                    else
-                        go.transform.localPosition = new Vector3(x, 0, y);
-                    role.X = go.transform.localPosition.x;
-                    role.Y = go.transform.localPosition.z;
-                    
-                    ModelCustomData customData = go.GetComponent<ModelCustomData>();
-                    customData.setPower((int)config.team);
-                    customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
-                    customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
-                    customData.getAnimator().Play("Idle", 0, 0);
-                    // customData.getAnimator().SetLookAtPosition(tarPos);
-                    colRoles.Add(role);
-                }
-            }
-
-            Formation formation = parent.GetComponent<Formation>();
-            formation.Init(instances,config);
-            _tmpFormation = formation;
             } break;
         }
+
+        List<Role> colRoles = new List<Role>();
+        instances.Add(colRoles);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (array[x, y]) {
+                    Debug.Log("ignore " + x + ", " + y + ", " + array[x, y]);
+                    continue;
+                }
+
+                if (!canGenerate[x, y]) {
+                    continue;
+                }
+                GameObject go = (GameObject)Resources.Load("Model/"+config.modelName+"/"+config.modelName);
+                Debug.Log("create object " + x + ", " + y + ", modelName=" + config.modelName);
+                go = Instantiate(go);
+                go.transform.parent = parent.transform;
+
+                Role role = new Role(go, x, y, config.health);
+                if (config.team == TEAM.TEAM1) {
+                    go.transform.Rotate(0, 90, 0, Space.Self);
+                } else {
+                    go.transform.Rotate(0, 270, 0, Space.Self);
+                }
+
+                if (config.randomGenerate)
+                    go.transform.localPosition = new Vector3(x, 0, y) + new Vector3(UnityEngine.Random.Range(0.0f, 1.0f), 0, UnityEngine.Random.Range(0.0f, 1.0f));
+                else
+                    go.transform.localPosition = new Vector3(x, 0, y);
+                role.X = go.transform.localPosition.x;
+                role.Y = go.transform.localPosition.z;
+                
+                ModelCustomData customData = go.GetComponent<ModelCustomData>();
+                customData.setPower((int)config.team);
+                customData.setLightDir(new Vector4(1.42f, 3.16f, 1.48f, 1.0f));
+                customData.setShadowColor(new Color(0.608f, 0.608f, 0.608f, 1f));
+                customData.getAnimator().Play("Idle", 0, 0);
+                // customData.getAnimator().SetLookAtPosition(tarPos);
+                colRoles.Add(role);
+            }
+        }
+
+        Formation formation = parent.GetComponent<Formation>();
+        formation.Init(instances,config);
+        _tmpFormation = formation;
     }
 
 	private static Ray ray;
